@@ -1,11 +1,18 @@
 abstract class Option<T> {
     abstract get(): T
+    abstract getOrElse<B>(ifEmpty: B): T | B
     abstract contains(item: T): Boolean
     abstract exists(p: (_: T) => Boolean): Boolean
     abstract filter(p: (_: T) => Boolean): Option<T>
     abstract filterNot(p: (_: T) => Boolean): Option<T>
     abstract flatten(): Option<T>
     abstract fold<U>(f: (_: T) => U, ifEmpty: U): U
+    abstract forall(p: (_: T) => Boolean): Boolean
+    abstract foreach<U>(f: (_: T) => U): void
+    abstract isDefined(): Boolean
+    abstract isEmpty(): Boolean
+    abstract orNull(): T | null
+    abstract orElse<U>(ifEmpty: Option<U>): Option<T | U>
 
     abstract map<U>(f: (_: T) => U): Option<U>
     abstract flatMap<U>(f: (_: T) => Option<U>): Option<U>
@@ -56,8 +63,36 @@ class Some<T> extends Option<T> {
         return this.value === item
     }
 
+    forall(p: (_: T) => Boolean): Boolean {
+        return p(this.value)
+    }
+
+    foreach<U>(f: (_: T) => U): void {
+        f(this.value)
+    }
+
+    isDefined(): Boolean {
+        return true
+    }
+
+    isEmpty(): Boolean {
+        return false
+    }
+
     get(): T {
         return this.value
+    }
+
+    getOrElse<B>(_: B): T | B {
+        return this.value
+    }
+
+    orNull(): T | null {
+        return this.value
+    }
+
+    orElse<U>(_: Option<U>): Option<T | U> {
+        return new Some(this.value)
     }
 }
 
@@ -98,8 +133,36 @@ class None<T> extends Option<T> {
         return new None()
     }
 
+    forall(_: (_: T) => Boolean): Boolean {
+        return true
+    }
+
+    foreach<U>(f: (_: T) => U): void {
+        // does nothing
+    }
+
+    isDefined(): Boolean {
+        return false
+    }
+
+    isEmpty(): Boolean {
+        return true
+    }
+
     get(): T {
         throw new Error("No such element")
+    }
+
+    getOrElse<B>(ifEmpty: B): T | B {
+        return ifEmpty
+    }
+
+    orNull(): T | null {
+        return null
+    }
+
+    orElse<U>(ifEmpty: Option<U>): Option<T | U> {
+        return ifEmpty
     }
 }
 
