@@ -1,0 +1,28 @@
+{
+  "name": "scalaesque-ts",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "@types/node": "^13.7.4"
+  },
+  "devDependencies": {
+    "typescript": "^3.8.2"
+  },
+  "scripts": {
+    "start": "node out/app.js",
+    "prestart": "npm run build",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/skaaj/scalaesque-ts.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/skaaj/scalaesque-ts/issues"
+  },
+  "homepage": "https://github.com/skaaj/scalaesque-ts#readme"
+}
