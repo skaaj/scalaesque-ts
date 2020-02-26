@@ -44,6 +44,12 @@ abstract class Option<T> {
             ? None.unit()
             : f(this.get)
     }
+
+    flatten<U>(): Option<U> {
+        return this.isDefined && this.get instanceof Option
+            ? this.get
+            : None.unit()
+    }
 }
 
 class Some<T> extends Option<T> {
@@ -84,19 +90,19 @@ class None extends Option<null> {
     }
 }
 
-// Creation
+console.log("-- Creation");
 console.log(Option.apply("10"))
 console.log(Option.apply(undefined))
 console.log(Option.empty())
 console.log(Option.when(1 === 1, 10))
 console.log(Some.of(1337))
 console.log(Some.of(null))
-// Status
+console.log("-- Status");
 console.log(None.unit().isEmpty)
 console.log(Some.of(0).isEmpty)
 console.log(None.unit().isDefined)
 console.log(Some.of(0).isDefined)
-// Access
+console.log("-- Access")
 try { None.unit().get } catch(e) { console.log(e) }
 console.log(Some.of(0).get)
 console.log(Some.of(0).getOrElse(100))
@@ -105,8 +111,19 @@ console.log(Some.of(0).orNull)
 console.log(None.unit().orNull)
 console.log(Some.of(0).fold(x => x + 1, -1))
 console.log(Some.of(null).fold(x => x + 1, -1))
-// Flatmap and Map
+console.log("-- Flatmap and Map")
 console.log(Some.of(0).map(x => x + 1))
 console.log(Some.of(null).map(x => x + 1))
 console.log(Some.of(0).flatMap(x => Some.of(x + 1)))
 console.log(Some.of(null).flatMap(x => Some.of(x + 1)))
+console.log("-- Flatten")
+console.log(Some.of(Some.of(12)).flatten())
+console.log(Some.of(12).flatten())
+console.log(Some.of(None).flatten())
+console.log(Some.of(Some.of(Some.of(12))).flatten())
+console.log();
+console.log();
+console.log(Some.of(Some.of(12)).flatMap(x => x));
+
+
+
