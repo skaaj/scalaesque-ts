@@ -50,6 +50,12 @@ abstract class Option<T> {
             ? this.get
             : None.unit()
     }
+
+    filter<U>(pred: (x: T) => Boolean): Option<T> {
+        return this.isEmpty || pred(this.get)
+            ? this.get
+            : None.unit()
+    }
 }
 
 class Some<T> extends Option<T> {
