@@ -11,6 +11,12 @@ abstract class Option<T> {
         return pred ? Some.of(value) : None.unit()
     }
 
+    static sequence<T>(...arr: Option<T>[]) {
+        return arr.some(x => x.isEmpty)
+            ? None.unit()
+            : Some.of(arr.map(x => x.get))
+    }
+
     abstract get isEmpty(): Boolean
     
     get isDefined() {
@@ -51,10 +57,59 @@ abstract class Option<T> {
             : None.unit()
     }
 
-    filter<U>(pred: (x: T) => Boolean): Option<T> {
+    filter(pred: (x: T) => Boolean): Option<T> {
         return this.isEmpty || pred(this.get)
-            ? this.get
+            ? this
             : None.unit()
+    }
+
+    filterNot(pred: (x: T) => Boolean): Option<T> {
+        return this.isEmpty || !pred(this.get)
+            ? this
+            : None.unit()
+    }
+
+    contains<U extends T>(elem: U): Boolean {
+        return !this.isEmpty && this.get === elem
+    }
+
+    exists(pred: (x: T) => Boolean): Boolean {
+        return !this.isEmpty && pred(this.get)
+    }
+
+    forall(pred: (x: T) => Boolean): Boolean {
+        return this.isEmpty || pred(this.get)
+    }
+
+    foreach<U>(f: (x: T) => U): void {
+        if(!this.isEmpty) {
+            f(this.get)
+        }
+    }
+
+    orElse<U>(defaultValue: Option<U>): Option<T | U> {
+        return this.isEmpty
+            ? defaultValue
+            : this
+    }
+
+    zip<U>(that: Option<U>): Option<[T, U]> {
+        return this.isEmpty || that.isEmpty
+            ? None.unit()
+            : Some.of([this.get, that.get])
+    }
+
+    unzip<U>(): [Option<T>, Option<U>] {
+        if(this.isEmpty || !(this.get instanceof Array)) {
+            return [None.unit(), None.unit()]
+        } else {
+            const value = this.get
+            return [Some.of(value[0]), Some.of(value[1])]
+        }
+    }
+
+    toArray() {
+        return this.isEmpty ? [] : [this.get]
     }
 }
 
@@ -87,7 +142,7 @@ class None extends Option<null> {
         return new None()
     }
 
-    get isEmpty() {
+    get isEmpty(): Boolean {
         return true
     }
 
@@ -96,40 +151,65 @@ class None extends Option<null> {
     }
 }
 
+// Usage examples
+const john = { firstname: "John", lastname: "Doe", age: Some.of(32) }
+const paul = { firstname: "Paul", lastname: "Doe", age: Some.of(28) }
+const meanAge = john.age.flatMap(x => paul.age.flatMap(y => Some.of((x + y) / 2)))
+const meanAgeSequence = Option.sequence(john.age, paul.age).map(x => x.reduce((a, b) => a + b) / x.length)
+console.log(meanAge)
+console.log(meanAgeSequence)
+
+// Let's test all of it
+let failedCount = 0
+const test = (label: string, assertion: Boolean) => {
+    if(assertion) {
+        console.info(label, "succeeded")
+    } else {
+        failedCount += 1
+        console.error(label, "failed")
+    }
+}
+const isSome = x => x instanceof Some
+const isNone = x => x instanceof None
+const isOption = x => x instanceof Option
+const valEq = <T>(x: Option<T>, y: T) => x instanceof Some && x.get === y
+
+const some1 = Some.of(1)
+const some2 = Some.of(2)
+const none = None.unit()
 console.log("-- Creation");
-console.log(Option.apply("10"))
-console.log(Option.apply(undefined))
-console.log(Option.empty())
-console.log(Option.when(1 === 1, 10))
-console.log(Some.of(1337))
-console.log(Some.of(null))
+test("Option.apply(1)", valEq(Option.apply(1), 1))
+test("Option.apply(undefined)", isNone(Option.apply(undefined)))
+test("Option.empty()", isNone(Option.empty()))
+test("Option.when", valEq(Option.when(2 === 2, 1), 1))
+test("Some.of(1)", valEq(Some.of(1), 1))
+test("Some.of(null)", isNone(Some.of(null)))
 console.log("-- Status");
-console.log(None.unit().isEmpty)
-console.log(Some.of(0).isEmpty)
-console.log(None.unit().isDefined)
-console.log(Some.of(0).isDefined)
+test("None.unit()", none.isEmpty)
+test("Some(1).isEmpty", !some1.isEmpty)
+test("None.isDefined", !none.isDefined)
+test("Some(1).isDefined", some1.isDefined)
 console.log("-- Access")
-try { None.unit().get } catch(e) { console.log(e) }
-console.log(Some.of(0).get)
-console.log(Some.of(0).getOrElse(100))
-console.log(None.unit().getOrElse(100))
-console.log(Some.of(0).orNull)
-console.log(None.unit().orNull)
-console.log(Some.of(0).fold(x => x + 1, -1))
-console.log(Some.of(null).fold(x => x + 1, -1))
+test("None.get throws", (() => {
+    try { none.get; return false }
+    catch(e) { return true }
+})())
+test("Some(1).get", some1.get === 1)
+test("Some(1).getOrElse(100)", some1.getOrElse(100) === 1)
+test("None.getOrElse(100)", none.getOrElse(100) === 100)
+test("Some(1).orNull", some1.orNull === 1)
+test("None.orNull", none.orNull === null)
+test("Some(1).fold", some1.fold(x => x + 1, -1) === 2)
+test("None.fold", Some.of(null).fold(x => x + 1, -1) === -1)
 console.log("-- Flatmap and Map")
-console.log(Some.of(0).map(x => x + 1))
-console.log(Some.of(null).map(x => x + 1))
-console.log(Some.of(0).flatMap(x => Some.of(x + 1)))
-console.log(Some.of(null).flatMap(x => Some.of(x + 1)))
+test("Some(1).map", valEq(some1.map(x => x + 1), 2))
+test("None.map", isNone(Some.of(null).map(x => x + 1)))
+test("Some.flatMap(+1)", valEq(some1.flatMap(x => Some.of(x + 1)), 2))
+test("Some.flatMap(=> None)", isNone(some1.flatMap(_ => none)))
+test("None.flatMap", isNone(Some.of(null).flatMap(x => Some.of(x + 1))))
 console.log("-- Flatten")
-console.log(Some.of(Some.of(12)).flatten())
-console.log(Some.of(12).flatten())
-console.log(Some.of(None).flatten())
-console.log(Some.of(Some.of(Some.of(12))).flatten())
-console.log();
-console.log();
-console.log(Some.of(Some.of(12)).flatMap(x => x));
+test("Some(Some(1)).flatten", valEq(Some.of(some1).flatten(), 1))
+test("Some(1).flatten", isNone(some1.flatten()))
+test("Some(None).flatten", isNone(Some.of(None).flatten()));
 
-
-
+(failedCount > 0 ? console.error : console.log)(`${failedCount} test${failedCount > 1 ? "s" : ""} failed.`) // lulcode
