@@ -1,8 +1,25 @@
 class LazySeq<T> implements Iterable<T> {
     constructor(private iterable: () => Iterable<T>) {}
     
-    [Symbol.iterator](): Iterator<T> {
+    [Symbol.iterator](): Iterator<T, T> {
         return this.iterable()[Symbol.iterator]()
+    }
+
+    private get iterator(): Iterator<T, T> {
+        return this[Symbol.iterator]()
+    }
+
+    get head(): T {
+        const result = this[Symbol.iterator]().next()
+        if(result.done) {
+            throw new Error("head of empty sequence")
+        } else {
+            return result.value
+        }
+    }
+
+    get tail(): LazySeq<T> {
+        return this.drop(1)
     }
 
     static of<T>(...arr: Array<T>){
@@ -46,6 +63,15 @@ class LazySeq<T> implements Iterable<T> {
         })
     }
 
+    flatMap<U>(f: (x: T) => LazySeq<U>): LazySeq<U> {
+        const iterable = this
+        return new LazySeq<U>(function* () {
+            for(const x of iterable) {
+                yield* f(x)
+            }
+        })
+    }
+
     filter(p: (x: T) => Boolean): LazySeq<T> {
         const iterable = this
         return new LazySeq<T>(function* () {
@@ -54,6 +80,14 @@ class LazySeq<T> implements Iterable<T> {
                     yield x
                 }
             }
+        })
+    }
+
+    concat(other: Iterable<T>): LazySeq<T> {
+        const iterable = this
+        return new LazySeq<T>(function* () {
+            yield* iterable;
+            yield* other;
         })
     }
 
@@ -75,6 +109,58 @@ class LazySeq<T> implements Iterable<T> {
                 }
             })
         }
+    }
+
+    drop(n: number): LazySeq<T> {
+        if(n <= 0) {
+            return new LazySeq(this.iterable)
+        } else {
+            const iterable = this
+            return new LazySeq(function* () {
+                let count = 0
+                for(const x of iterable) {
+                    count += 1
+                    if(count > n) {
+                        yield x
+                    }
+                }
+            })
+        }
+    }
+ 
+    zip<U>(other: Iterable<U>): LazySeq<[T, U]> {
+        const iteratorLeft = this[Symbol.iterator]()
+        const iteratorRight = other[Symbol.iterator]()
+
+        let left = iteratorLeft.next()
+        let right = iteratorRight.next()
+
+        return new LazySeq<[T, U]>(function* () {
+            while(!left.done && !right.done) {
+                yield [left.value, right.value]
+                left = iteratorLeft.next()
+                right = iteratorRight.next()
+            }
+        })
+    }
+
+    exists(p: (x: T) => Boolean): Boolean {
+        for(const x of this) {
+            if(p(x)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    count(p: (x: T) => Boolean): number {
+        let count = 0
+        for(const x of this) {
+            if(p(x)) {
+                count++
+            }
+        }
+        return count
     }
 
     toArray(): Array<T> {
@@ -104,7 +190,12 @@ const printSeq = xs => {
 // printSeq(LazySeq.empty())
 // printSeq(LazySeq.of(1, 2, 3, 4, 50).map(x => x).filter(x => x > 10).take(0))
 
-LazySeq.of(1, 2, 3, 4, 5).map(x => { console.log(x); return x; }).take(10).toArray()
+// LazySeq.of(1, 2, 3, 4, 5).map(x => { console.log(x); return x; }).take(10).toArray()
+const xs = LazySeq.of(1, 2, 3).zip(['a', 'b']).toArray()
+console.log(xs);
+console.log(LazySeq.of(25).exists(x => x > 50));
+console.log(LazySeq.of(1337).head);
+console.log(LazySeq.of(1, 2, 3, 4, 5).tail.toArray());
 
 // console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
 //     console.log(x);
