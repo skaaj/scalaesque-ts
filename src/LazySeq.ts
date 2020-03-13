@@ -38,14 +38,14 @@ class LazySeq<T> implements Iterable<T> {
         return new LazySeq<T>(generator)
     }
     
-    static just<T>(item: T) {
-        return new LazySeq<T>(() => [item])
-    }
-
     static empty(): LazySeq<null> {
         return new LazySeq<null>(() => [])
     }
-
+    
+    static just<T>(item: T) {
+        return new LazySeq<T>(() => [item])
+    }
+    
     static range(start: number, end: number) {
         return new LazySeq<number>(function* () {
             let i = start
@@ -164,6 +164,10 @@ class LazySeq<T> implements Iterable<T> {
         return false
     }
 
+    forall(p: (x: T) => Boolean): Boolean {
+        return !this.exists(x => !p(x))
+    }
+
     count(p: (x: T) => Boolean): number {
         let count = 0
         for(const x of this) {
@@ -206,9 +210,7 @@ console.log(LazySeq.empty().toArray());
 const [head, ...tail] = LazySeq.of(1, 2, 3, 4, 5);
 console.log(head);
 console.log(tail);
-
-
-
+console.log(LazySeq.of(1, 2, 3).forall(x => x > 0));
 
 // console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
 //     console.log(x);
