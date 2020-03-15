@@ -129,6 +129,23 @@ class Seq<T> implements Iterable<T> {
             })
         }
     }
+
+    dropWhile(p: (x: T) => boolean): Seq<T> {
+        const iterator = this.iterator;
+        return Seq.create(function* () {
+            let current = iterator.next();
+            let started = false;
+            while(!current.done) {
+                if(!started) {
+                    started = !p(current.value);
+                }
+                if(started) {
+                    yield current.value;
+                }
+                current = iterator.next();
+            }
+        });
+    }
  
     zip<U>(other: Iterable<U>): Seq<[T, U]> {
         const iteratorLeft = this.iterator
@@ -211,6 +228,7 @@ const [head, ...tail] = Seq.of(1, 2, 3, 4, 5);
 console.log(head);
 console.log(tail);
 console.log(Seq.of(1, 2, 3).forall(x => x > 0));
+console.log(Seq.of(1, 2, 3).dropWhile(x => x % 2 == 1).toArray());
 
 // console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
 //     console.log(x);
