@@ -65,6 +65,12 @@ class Seq<T> implements Iterable<T> {
         })
     }
 
+    foreach<U>(f: (x: T) => U): void {
+        for(const x of this.iterable) {
+            f(x)
+        }
+    }
+
     flatMap<U>(f: (x: T) => Seq<U>): Seq<U> {
         const iterable = this.iterable
         return new Seq<U>(function* () {
@@ -229,6 +235,7 @@ console.log(head);
 console.log(tail);
 console.log(Seq.of(1, 2, 3).forall(x => x > 0));
 console.log(Seq.of(1, 2, 3).dropWhile(x => x % 2 == 1).toArray());
+Seq.of(1, 2, 3, 4, 5).foreach(console.log);
 
 // console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
 //     console.log(x);
