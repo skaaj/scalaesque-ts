@@ -1,4 +1,6 @@
-class Seq<T> implements Iterable<T> {
+import { Option, Some, None } from './Option'
+
+export class Seq<T> implements Iterable<T> {
     private constructor(private iterableProvider: () => Iterable<T>) {}
     
     [Symbol.iterator](): Iterator<T, T> {
@@ -20,6 +22,11 @@ class Seq<T> implements Iterable<T> {
         } else {
             return result.value
         }
+    }
+
+    get headOption(): Option<T> {
+        const result = this.iterator.next()
+        return result.done ? None.unit() : Some.of(result.value)
     }
 
     get tail(): Seq<T> {
@@ -224,18 +231,18 @@ class Seq<T> implements Iterable<T> {
 
 // LazySeq.of(1, 2, 3, 4, 5).map(x => { console.log(x); return x; }).take(10).toArray()
 
-const xs = Seq.of(1, 2, 3).zip(['a', 'b']).toArray()
-console.log(xs);
-console.log(Seq.of(25).exists(x => x > 50));
-console.log(Seq.of(1337).head);
-console.log(Seq.of(1, 2, 3, 4, 5).tail.toArray());
-console.log(Seq.empty().toArray());
-const [head, ...tail] = Seq.of(1, 2, 3, 4, 5);
-console.log(head);
-console.log(tail);
-console.log(Seq.of(1, 2, 3).forall(x => x > 0));
-console.log(Seq.of(1, 2, 3).dropWhile(x => x % 2 == 1).toArray());
-Seq.of(1, 2, 3, 4, 5).foreach(console.log);
+// const xs = Seq.of(1, 2, 3).zip(['a', 'b']).toArray()
+// console.log(xs);
+// console.log(Seq.of(25).exists(x => x > 50));
+// console.log(Seq.of(1337).head);
+// console.log(Seq.of(1, 2, 3, 4, 5).tail.toArray());
+// console.log(Seq.empty().toArray());
+// const [head, ...tail] = Seq.of(1, 2, 3, 4, 5);
+// console.log(head);
+// console.log(tail);
+// console.log(Seq.of(1, 2, 3).forall(x => x > 0));
+// console.log(Seq.of(1, 2, 3).dropWhile(x => x % 2 == 1).toArray());
+// Seq.of(1, 2, 3, 4, 5).foreach(console.log);
 
 // console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
 //     console.log(x);

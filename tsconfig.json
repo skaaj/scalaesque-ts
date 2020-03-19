@@ -4,6 +4,7 @@
         "lib": ["es6"],
         "outDir": "./out",
         "rootDir": "./src",
-        "sourceMap": true
+        "sourceMap": true,
+        "module": "CommonJS"
     }
 }
