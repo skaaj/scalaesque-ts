@@ -49,10 +49,6 @@ export class Seq<T> implements Iterable<T> {
         return new Seq<null>(() => [])
     }
     
-    static just<T>(item: T) {
-        return new Seq<T>(() => [item])
-    }
-    
     static range(start: number, end: number) {
         return new Seq<number>(function* () {
             let i = start
@@ -212,42 +208,3 @@ export class Seq<T> implements Iterable<T> {
         return Array.from(this.iterable)
     }
 }
-
-// const xs = LazySeq.from(new Set([1, 1, 1, 2, 3, 4]));
-// const ys = xs.toArray();
-
-// printSeq(xs)
-// printSeq(ys)
-// printSeq(LazySeq.create(function* () {
-//     yield 10
-//     yield 20
-//     yield 30
-//     yield 40
-// }))
-// printSeq(LazySeq.just(42))
-// printSeq(LazySeq.range(0, 4))
-// printSeq(LazySeq.empty())
-// printSeq(LazySeq.of(1, 2, 3, 4, 50).map(x => x).filter(x => x > 10).take(0))
-
-// LazySeq.of(1, 2, 3, 4, 5).map(x => { console.log(x); return x; }).take(10).toArray()
-
-// const xs = Seq.of(1, 2, 3).zip(['a', 'b']).toArray()
-// console.log(xs);
-// console.log(Seq.of(25).exists(x => x > 50));
-// console.log(Seq.of(1337).head);
-// console.log(Seq.of(1, 2, 3, 4, 5).tail.toArray());
-// console.log(Seq.empty().toArray());
-// const [head, ...tail] = Seq.of(1, 2, 3, 4, 5);
-// console.log(head);
-// console.log(tail);
-// console.log(Seq.of(1, 2, 3).forall(x => x > 0));
-// console.log(Seq.of(1, 2, 3).dropWhile(x => x % 2 == 1).toArray());
-// Seq.of(1, 2, 3, 4, 5).foreach(console.log);
-
-// console.log(LazySeq.of(1, 2, 3, 4, 50).map(x => {
-//     console.log(x);
-//     return x
-// }).take(1).toArray());
-
-// printSeq(LazySeq.of(1, 2, 3, 4, 50).take(3))
-// printSeq(LazySeq.of(1, 2, 3, 4, 50).take(1))

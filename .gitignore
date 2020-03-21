@@ -1,3 +1,7 @@
+# Misc
+/out
+.vscode/
+
 # Logs
 logs
 *.log
