@@ -83,7 +83,7 @@ export class Seq<T> implements Iterable<T> {
         })
     }
 
-    filter(p: (x: T) => Boolean): Seq<T> {
+    filter(p: (x: T) => boolean): Seq<T> {
         const iterable = this.iterable
         return new Seq<T>(function* () {
             for(const x of iterable) {
@@ -172,7 +172,7 @@ export class Seq<T> implements Iterable<T> {
         })
     }
 
-    contains(value: T): Boolean {
+    contains(value: T): boolean {
         for(const x of this.iterable) {
             if(x === value) {
                 return true;
@@ -181,7 +181,7 @@ export class Seq<T> implements Iterable<T> {
         return false;
     }
 
-    exists(p: (x: T) => Boolean): Boolean {
+    exists(p: (x: T) => boolean): boolean {
         for(const x of this.iterable) {
             if(p(x)) {
                 return true
@@ -190,11 +190,11 @@ export class Seq<T> implements Iterable<T> {
         return false
     }
 
-    forall(p: (x: T) => Boolean): Boolean {
+    forall(p: (x: T) => boolean): boolean {
         return !this.exists(x => !p(x))
     }
 
-    count(p: (x: T) => Boolean): number {
+    count(p: (x: T) => boolean): number {
         let count = 0
         for(const x of this) {
             if(p(x)) {

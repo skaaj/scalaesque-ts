@@ -5,6 +5,10 @@
         "outDir": "./out",
         "rootDir": "./src",
         "sourceMap": true,
-        "module": "CommonJS"
-    }
+        "module": "CommonJS",
+        "removeComments": true,
+        "emitDecoratorMetadata": true,
+        "experimentalDecorators": true,
+    },
+    "exclude": ["node_modules", "**/*.spec.ts"]
 }
