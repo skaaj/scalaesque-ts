@@ -1,4 +1,4 @@
-abstract class Try<T> {
+export abstract class Try<T> {
     static apply<T>(f: () => T): Try<T> {
         try {
             return Success.of(f())
@@ -21,7 +21,7 @@ abstract class Try<T> {
     abstract fold<U>(s: (x: T) => U, f: (t: Error) => U): U
 }
 
-class Success<T> extends Try<T> {
+export class Success<T> extends Try<T> {
     constructor(private value: T) {
         super()
     }
@@ -87,7 +87,7 @@ class Success<T> extends Try<T> {
     }
 }
 
-class Failure<T> extends Try<T> {
+export class Failure<T> extends Try<T> {
     constructor(private exception: Error) {
         super()
     }
@@ -148,11 +148,3 @@ class Failure<T> extends Try<T> {
         return Failure.of(this.exception)
     }
 }
-
-// TODO
-// - toOption
-
-const barney = {firstname: "Barney", lastname: "Doe"}
-const louise = JSON.parse("{}")
-console.log(Try.apply(() => barney.firstname));
-console.log(Try.apply(() => louise.props.age));
