@@ -102,6 +102,14 @@ describe("Seq test suite", () => {
     expect(Seq.of(1, 2, 3).drop(0)).toEqual(Seq.of(1, 2, 3));
   });
 
+  test("seq.append(x) should add item x at the end", () => {
+    expect(Seq.of(1, 2, 3).append(4)).toEqual(Seq.of(1, 2, 3, 4));
+  });
+
+  test("seq.prepend(x) should add item x at the beginning", () => {
+    expect(Seq.of(1, 2, 3).prepend(0)).toEqual(Seq.of(0, 1, 2, 3));
+  });
+
   test("seq.dropWhile(p) should drop first items that satisfy the predicate", () => {
     expect(Seq.of(1, 2, 3).dropWhile(x => x < 3)).toEqual(Seq.of(3));
   });

@@ -95,11 +95,27 @@ export class Seq<T> implements Iterable<T> {
     }
 
     concat(other: Iterable<T>): Seq<T> {
-        const iterable = this.iterable
+        const iterable = this.iterable;
         return new Seq<T>(function* () {
             yield* iterable;
             yield* other;
-        })
+        });
+    }
+
+    append(x: T): Seq<T> {
+        const iterable = this.iterable
+        return new Seq<T>(function* () {
+            yield* iterable;
+            yield x;
+        });
+    }
+
+    prepend(x: T): Seq<T> {
+        const iterable = this.iterable
+        return new Seq<T>(function* () {
+            yield x;
+            yield* iterable;
+        });
     }
 
     take(n: number): Seq<T> {
