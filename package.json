@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@types/node": "^13.7.4"
+    "@types/node": "^13.7.4",
+    "benchmark": "^2.1.4"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
