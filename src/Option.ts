@@ -1,152 +1,194 @@
-export abstract class Option<T> {
-    static apply<T>(value: T) {
-        return Some.of(value)
+export interface Option<T> {
+    isEmpty: boolean,
+    isDefined: boolean,
+    get(): T,
+    getOrElse<U>(defaultValue: U): T | U,
+    map<U>(f: (x: T) => U): Option<U>,
+    fold<U>(f: (x: T) => U, defaultValue: U): U,
+    flatMap<U>(f: (x: T) => Option<U>): Option<U>,
+    flatten<U>(): Option<U> | T,
+    filter(pred: (x: T) => Boolean): Option<T>,
+    filterNot(pred: (x: T) => Boolean): Option<T>,
+    contains<U extends T>(elem: U): Boolean,
+    exists(pred: (x: T) => Boolean): Boolean,
+    forall(pred: (x: T) => Boolean): Boolean,
+    foreach<U>(f: (x: T) => U): void,
+    orElse<U>(defaultValue: Option<U>): Option<T | U>,
+    zip<U>(that: Option<U>): Option<[T, U]>,
+    unzip<U>(): [Option<T>, Option<U>]
+}
+
+export type None = NoneObject;
+class NoneObject implements Option<never> {
+    private static instance: None;
+
+    constructor() {}
+
+    static unit(): None {
+        if(!NoneObject.instance) {
+            NoneObject.instance = new NoneObject;
+        }
+        return NoneObject.instance;
     }
 
-    static empty() {
-        return None.unit()
+    get isEmpty(): true {
+        return true;
     }
-
-    static when<T>(pred: Boolean, value: T): Option<T> {
-        return pred ? Some.of(value) : None.unit()
-    }
-
-    static sequence<T>(...arr: Option<T>[]) {
-        return arr.some(x => x.isEmpty)
-            ? None.unit()
-            : Some.of(arr.map(x => x.get))
-    }
-
-    abstract get isEmpty(): Boolean
     
-    get isDefined() {
-        return !this.isEmpty
+    get isDefined(): false {
+        return false;
     }
 
-    abstract get get(): T
+    get(): never {
+        throw new EvalError("None.get");
+    }
+
+    getOrElse<U>(defaultValue: U): U {
+        return defaultValue;
+    }
+
+    map<U>(f: (x: never) => U): None {
+        return this;
+    }
+
+    fold<U>(f: (x: never) => U, defaultValue: U): U {
+        return defaultValue;
+    }
+
+    flatMap<U>(f: (x: never) => Option<U>): None {
+        return this;
+    }
+
+    flatten(): None {
+        return this;
+    }
+
+    filter(pred: (x: never) => Boolean): Option<never> {
+        return this;
+    }
+
+    filterNot(pred: (x: never) => Boolean): Option<never> {
+        return this;
+    }
+
+    contains<U extends never>(elem: U): Boolean {
+        return false;
+    }
     
-    getOrElse<U>(defaultValue: U): T | U {
-        return this.isEmpty ? defaultValue : this.get
+    exists(pred: (x: never) => Boolean): Boolean {
+        return false;
     }
 
-    get orNull(): T | null {
-        return this.getOrElse(null)
+    forall(pred: (x: never) => Boolean): Boolean {
+        return true;
     }
-
-    map<U>(f: (x: T) => U): Option<U> {
-        return this.isEmpty
-            ? None.unit()
-            : Some.of(f(this.get))
+    
+    foreach<U>(f: (x: never) => U): void {
+        /* nothing do to */
     }
+    
+    orElse<U>(defaultValue: Option<U>): Option<U> {
+        return defaultValue;
+    }
+    
+    zip<U>(that: Option<U>): Option<never> {
+        return NoneObject.unit();
+    }
+    
+    unzip<U>(): [Option<never>, Option<never>] {
+        return [NoneObject.unit(), NoneObject.unit()];
+    }
+}
 
+export type Some<T> = SomeObject<T>;
+class SomeObject<T> implements Option<T> {
+    constructor(private value: T) {}
+    
+    get isDefined(): boolean {
+        return true;
+    }
+    
+    get isEmpty(): boolean {
+        return false;
+    }
+    
+    get(): T {
+        return this.value;
+    }
+    
+    getOrElse<U>(defaultValue: U): T {
+        return this.value;
+    }
+    
+    map<U>(f: (x: T) => U): Some<U> {
+        return new SomeObject(f(this.value));
+    }
+    
     fold<U>(f: (x: T) => U, defaultValue: U): U {
-        return this.isEmpty
-            ? defaultValue
-            : f(this.get)
+        return f(this.value);
     }
-
+    
     flatMap<U>(f: (x: T) => Option<U>): Option<U> {
-        return this.isEmpty
-            ? None.unit()
-            : f(this.get)
+        return f(this.value);
     }
-
-    flatten<U>(): Option<U> {
-        return this.isDefined && this.get instanceof Option
-            ? this.get
-            : None.unit()
+    
+    flatten<U>(): Option<U> | never {
+        const inner = this.value;
+        if(inner instanceof SomeObject || inner instanceof NoneObject) {
+            return inner;
+        } else {
+            throw new Error("Could not flatten already flat Option.");
+        }
     }
-
+    
     filter(pred: (x: T) => Boolean): Option<T> {
-        return this.isEmpty || pred(this.get)
-            ? this
-            : None.unit()
+        return pred(this.value) ? this : NoneObject.unit();
     }
 
     filterNot(pred: (x: T) => Boolean): Option<T> {
-        return this.isEmpty || !pred(this.get)
-            ? this
-            : None.unit()
+        return !pred(this.value) ? this : NoneObject.unit();
     }
-
+    
     contains<U extends T>(elem: U): Boolean {
-        return !this.isEmpty && this.get === elem
+        return this.value === elem;
     }
-
+    
     exists(pred: (x: T) => Boolean): Boolean {
-        return !this.isEmpty && pred(this.get)
+        return pred(this.value);
     }
-
+    
     forall(pred: (x: T) => Boolean): Boolean {
-        return this.isEmpty || pred(this.get)
+        return pred(this.value);
     }
-
+    
     foreach<U>(f: (x: T) => U): void {
-        if(!this.isEmpty) {
-            f(this.get)
-        }
+        f(this.value);
     }
-
-    orElse<U>(defaultValue: Option<U>): Option<T | U> {
-        return this.isEmpty
-            ? defaultValue
-            : this
+    
+    orElse<U>(defaultValue: Option<U>): Option<T> {
+        return this;
     }
-
+    
     zip<U>(that: Option<U>): Option<[T, U]> {
-        return this.isEmpty || that.isEmpty
-            ? None.unit()
-            : Some.of([this.get, that.get])
+        return that.isDefined
+            ? new SomeObject([this.value, that.get()] as [T, U])
+            : NoneObject.unit();
     }
-
+    
     unzip<U>(): [Option<T>, Option<U>] {
-        if(this.isEmpty || !(this.get instanceof Array)) {
-            return [None.unit(), None.unit()]
-        } else {
-            const value = this.get
-            return [Some.of(value[0]), Some.of(value[1])]
-        }
-    }
-
-    toArray() {
-        return this.isEmpty ? [] : [this.get]
+        const inner = this.value;
+        return inner instanceof Array && inner.length === 2
+            ? [new SomeObject(inner[0]), new SomeObject(inner[1])]
+            : [NoneObject.unit(), NoneObject.unit()];
     }
 }
 
-export class Some<T> extends Option<T> {
-    constructor(private value: T) {
-        super()
-    }
-
-    static of<T>(value: T): Option<T> {
-        return value == null
-            ? new None()
-            : new Some(value)
-    }
-
-    get isEmpty() {
-        return false
-    }
-
-    get get(): T {
-        return this.value
-    }
+export function Some<T>(value: T): Some<T> {
+    return new SomeObject(value);
 }
 
-export class None extends Option<null> {
-    constructor() {
-        super()
-    }
+Object.defineProperty(Some, Symbol.hasInstance, {
+    value: (obj) => obj instanceof SomeObject
+});
 
-    static unit(): None {
-        return new None()
-    }
-
-    get isEmpty(): Boolean {
-        return true
-    }
-
-    get get(): never {
-        throw new EvalError("None.get")
-    }
-}
+export const None = NoneObject.unit();
