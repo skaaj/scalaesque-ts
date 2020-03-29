@@ -1,9 +1,14 @@
+import { Some } from './Option';
+
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite;
 
+let i = 0;
+
 suite
-.add('Nothing', function() {
-    // nothing
+.add('Some(i)', function() {
+    let s = Some(i);
+    let t = s.get;
 })
 .on('cycle', function(event) {
   console.log(String(event.target));

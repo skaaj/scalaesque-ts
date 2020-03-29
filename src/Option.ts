@@ -183,12 +183,19 @@ class SomeObject<T> implements Option<T> {
     }
 }
 
-export function Some<T>(value: T): Some<T> {
-    return new SomeObject(value);
-}
 
 Object.defineProperty(Some, Symbol.hasInstance, {
     value: (obj) => obj instanceof SomeObject
 });
 
-export const None = NoneObject.unit();
+Object.defineProperty(None, Symbol.hasInstance, {
+    value: (obj) => obj instanceof NoneObject
+});
+
+export function Some<T>(value: T): Some<T> {
+    return new SomeObject(value);
+}
+
+export function None(): None {
+    return NoneObject.unit();
+}
