@@ -1,13 +1,9 @@
 import { Some } from './Option';
-<<<<<<< HEAD
 import { Some_WIP as WIP } from './Option.wip';
-=======
->>>>>>> a5264fb7c4167be1a9f3bc71ed7985e9a1e17f88
 
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite;
 
-<<<<<<< HEAD
 console.log(WIP(1337));
 
 let i = 0;
@@ -20,14 +16,6 @@ suite
 .add('WIP(10)', function() {
   const x = WIP(i++);
   // const y = x.value;
-=======
-let i = 0;
-
-suite
-.add('Some(i)', function() {
-    let s = Some(i);
-    let t = s.get;
->>>>>>> a5264fb7c4167be1a9f3bc71ed7985e9a1e17f88
 })
 .on('cycle', function(event) {
   console.log(String(event.target));
