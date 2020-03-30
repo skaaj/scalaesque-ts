@@ -26,7 +26,7 @@ export class Seq<T> implements Iterable<T> {
 
     get headOption(): Option<T> {
         const result = this.iterator.next()
-        return result.done ? None : Some(result.value)
+        return result.done ? None() : Some(result.value)
     }
 
     get tail(): Seq<T> {
