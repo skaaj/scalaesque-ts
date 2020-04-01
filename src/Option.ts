@@ -22,7 +22,7 @@ export type None = NoneObject;
 class NoneObject implements Option<never> {
     private static instance: None;
 
-    constructor() {}
+    private constructor() {}
 
     static unit(): None {
         if(!NoneObject.instance) {

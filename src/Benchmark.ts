@@ -1,5 +1,5 @@
 import { Some as OldSome } from './Option';
-import { Some } from './Option.wip';
+import { Some, None } from './Option.wip';
 
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite;
@@ -10,8 +10,10 @@ let plusOne = (x: number) => x + 1;
 
 const s1 = OldSome(100);
 const s2 = Some(100);
+const n1 = None();
 
-console.log(Some(30));
+console.log(Some(30) instanceof Some);
+console.log(None());
 
 suite
 .add('Some Creation', function() {
@@ -24,7 +26,7 @@ suite
   const y = s1.map(plusOne).map(minusOne);
 })
 .add('WIP Mapping', function() {
-  const y = s2.map(minusOne).map(plusOne);
+  const y = s2.map(minusOne).map(plusOne).map(minusOne).map(plusOne).map(minusOne).map(plusOne).map(minusOne);
 })
 .on('cycle', function(event) {
   console.log(String(event.target));
