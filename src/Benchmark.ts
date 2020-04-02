@@ -1,5 +1,6 @@
 import { Some as OldSome } from './Option';
-import { Some, None } from './Option.wip';
+import { OptionType, SomeType, Option, Some, None } from './Option.wip';
+
 
 const Benchmark = require('benchmark');
 const suite = new Benchmark.Suite;
@@ -20,7 +21,11 @@ suite
   const x = OldSome(i++);
 })
 .add('WIP Creation', function() {
-  const x = Some(i--);
+  const sa = Some(42);
+  const sb = sa.map(x => x * 100);
+  const sc = sb.flatMap(x => None());
+  const sd = Option.sequence(sa, sb, sc.orElse(Some(1992)));
+  const se = sd.getOrElse("N/A");
 })
 .add('Some Mapping', function() {
   const y = s1.map(plusOne).map(minusOne);
