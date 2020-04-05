@@ -1,12 +1,13 @@
-import { Option, Some, None } from './Option.wip';
+import { Option, Some, None } from './Option';
 
-const sa = Some(42);
-const sb = sa.map(x => x * 100);
-const sc = sb.flatMap(x => None());
-const sd = Option.sequence(sa, sb, sc.orElse(Some(1992)));
-const se = sd.getOrElse("N/A");
+const sa = Some(1);
+const na = None();
+console.log(sa);
+console.log(na);
 console.log(sa instanceof Some);
-console.log(sc instanceof None);
-console.log(sd);
-console.log(se);
-console.log(None() instanceof None);
+console.log(na instanceof None);
+console.log(Option.sequence(
+    Some(1),
+    Some(2),
+    Some(3)
+));
