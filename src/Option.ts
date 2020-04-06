@@ -19,7 +19,7 @@ interface Option<T> {
   forall(pred: (x: T) => Boolean): Boolean;
   foreach<U>(f: (x: T) => U): void;
   orElse<U>(defaultValue: Option<U>): Option<T | U>;
-  zip<U>(that: Option<U>): Option<[T, U]>;
+  zip<U>(that: Option<U>): Option<[T, U]> | None;
   unzip<U>(): [Option<T>, Option<U>];
 }
 
@@ -48,22 +48,9 @@ Option.sequence = <T>(...arr: Option<T>[]): Option<T[]> =>
 
 interface Some<T> extends Option<T> {
   type: OptionType.Some;
-  isEmpty: boolean;
-  isDefined: boolean;
+  isEmpty: false;
+  isDefined: true;
   get(): T;
-  getOrElse<U>(defaultValue: U): T | U;
-  map<U>(f: (x: T) => U): Option<U>;
-  fold<U>(f: (x: T) => U, defaultValue: U): U;
-  flatMap<U>(f: (x: T) => Option<U>): Option<U>;
-  flatten(): Option<unknown> | never;
-  filter(pred: (x: T) => Boolean): Option<T>;
-  contains<U extends T>(elem: U): Boolean;
-  exists(pred: (x: T) => Boolean): Boolean;
-  forall(pred: (x: T) => Boolean): Boolean;
-  foreach<U>(f: (x: T) => U): void;
-  orElse<U>(defaultValue: Option<U>): Option<T | U>;
-  zip<U>(that: Option<U>): Option<[T, U]>;
-  unzip<U>(): [Option<T>, Option<U>];
 }
 
 function Some<T>(value: T): Some<T> {
@@ -72,7 +59,7 @@ function Some<T>(value: T): Some<T> {
   return obj;
 }
 
-const someImpl = {
+const someImpl: Some<unknown> = {
   type: OptionType.Some,
   isDefined: true,
   isEmpty: false,
@@ -134,34 +121,22 @@ Object.setPrototypeOf(someImpl, Some.prototype);
 
 interface None extends Option<never> {
   type: OptionType.None;
-  isEmpty: boolean;
-  isDefined: boolean;
+  isEmpty: true;
+  isDefined: false;
   get(): never;
-  getOrElse<U>(defaultValue: U): never | U;
-  map<U>(f: (x: never) => U): Option<U>;
-  fold<U>(f: (x: never) => U, defaultValue: U): U;
-  flatMap<U>(f: (x: never) => Option<U>): Option<U>;
-  flatten<U>(): Option<U> | never;
-  filter(pred: (x: never) => Boolean): Option<never>;
-  contains<U extends never>(elem: U): Boolean;
-  exists(pred: (x: never) => Boolean): Boolean;
-  forall(pred: (x: never) => Boolean): Boolean;
-  foreach<U>(f: (x: never) => U): void;
-  orElse<U>(defaultValue: Option<U>): Option<never | U>;
-  zip<U>(that: Option<U>): Option<[never, U]>;
-  unzip<U>(): [None, Option<U>];
+  getOrElse<U>(defaultValue: U): U;
 }
 
 function None(): None {
   return Object.create(noneImpl)
 }
 
-const noneImpl = {
+const noneImpl: None = {
   type: OptionType.None,
   isDefined: false,
   isEmpty: true,
   get() {
-    throw new Error("");
+    throw new Error(""); // TODO: message
   },
   getOrElse<U>(defaultValue: U) {
     return defaultValue;
