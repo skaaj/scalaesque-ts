@@ -9,20 +9,20 @@ let plusOne = (x: number) => x + 1;
 
 const s1 = Some(100);
 
-let mapresult: Option<number> = Some(0);
+let mapresult1: Option<number> = Some(0);
 
 suite
 .add('Some Creation', function() {
-  const x = Some(i++);
+  mapresult1 = Some(100);
 })
 .add('Some Mapping', function() {
-  mapresult = s1.map(plusOne).map(minusOne).map(plusOne);
+  mapresult1 = s1.map(plusOne).map(minusOne).map(plusOne);
 })
 .on('cycle', function(event) {
   console.log(String(event.target));
 })
 .on('complete', function() {
   console.log('Fastest is ' + this.filter('fastest').map('name'));
-  console.log(mapresult);
+  console.log(mapresult1);
 })
 .run({ 'async': true });

@@ -46,8 +46,7 @@ Option.sequence = <T>(...arr: Option<T>[]): Option<T[]> =>
     ? None()
     : Some(arr.map(x => x.get()))
 
-declare class Some<T> implements Option<T> {
-  constructor(x: T);
+interface Some<T> extends Option<T> {
   type: OptionType.Some;
   isEmpty: boolean;
   isDefined: boolean;
@@ -67,13 +66,13 @@ declare class Some<T> implements Option<T> {
   unzip<U>(): [Option<T>, Option<U>];
 }
 
-function Some<T>(this: (Some<T> & { value: T }) | void, value: T): Some<T> {
-  const obj = Object.create(someProto);
+function Some<T>(value: T): Some<T> {
+  const obj = Object.create(someImpl);
   obj.value = value;
   return obj;
 }
 
-const someProto = {
+const someImpl = {
   type: OptionType.Some,
   isDefined: true,
   isEmpty: false,
@@ -84,7 +83,7 @@ const someProto = {
     return this.value;
   },
   map<T, U>(f: (x: T) => U) {
-    return new Some(f(this.value));
+    return Some(f(this.value));
   },
   fold<T, U>(f: (x: T) => U, defaultValue: U) {
     return f(this.value);
@@ -131,7 +130,9 @@ const someProto = {
   }
 };
 
-declare class None extends Option<never> {
+Object.setPrototypeOf(someImpl, Some.prototype);
+
+interface None extends Option<never> {
   type: OptionType.None;
   isEmpty: boolean;
   isDefined: boolean;
@@ -151,13 +152,11 @@ declare class None extends Option<never> {
   unzip<U>(): [None, Option<U>];
 }
 
-function None(this: None | void): None {
-  if (!(this instanceof None)) {
-    return new None();
-  }
+function None(): None {
+  return Object.create(noneImpl)
 }
 
-None.prototype = {
+const noneImpl = {
   type: OptionType.None,
   isDefined: false,
   isEmpty: true,
@@ -204,5 +203,7 @@ None.prototype = {
     return [None(), None()];
   }
 }
+
+Object.setPrototypeOf(noneImpl, None.prototype);
 
 export { Option, Some, None }
