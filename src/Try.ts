@@ -1,150 +1,142 @@
-export abstract class Try<T> {
-    static apply<T>(f: () => T): Try<T> {
-        try {
-            return Success.of(f())
-        } catch(e) {
-            return Failure.of(e)
-        }
-    }
-
-    abstract get isFailure(): Boolean
-    abstract get isSuccess(): Boolean
-    abstract getOrElse<U>(defaultValue: U): T | U
-    abstract orElse<U>(other: Try<U>): Try<T | U>
-    abstract get get(): T
-    abstract foreach<U>(f: (x: T) => U): void
-    abstract flatMap<U>(f: (x: T) => Try<U>): Try<U>
-    abstract map<U>(f: (x: T) => U): Try<U>
-    abstract filter(p: (x: T) => Boolean): Try<T>
-    abstract flatten<U>(): Try<T | U>
-    abstract transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>
-    abstract fold<U>(s: (x: T) => U, f: (t: Error) => U): U
+enum TryType {
+    Success = "__success",
+    Failure = "__failure"
 }
 
-export class Success<T> extends Try<T> {
-    constructor(private value: T) {
-        super()
-    }
+interface Try<T> {
+    type: TryType,
+    isFailure(): Boolean,
+    isSuccess(): Boolean,
+    getOrElse<U>(defaultValue: U): T | U,
+    orElse<U>(other: Try<U>): Try<T | U>,
+    get(): T,
+    foreach<U>(f: (x: T) => U): void,
+    flatMap<U>(f: (x: T) => Try<U>): Try<U>,
+    map<U>(f: (x: T) => U): Try<U>,
+    filter(p: (x: T) => Boolean): Try<T>,
+    flatten<U>(): Try<T | U>,
+    transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>,
+    fold<U>(s: (x: T) => U, f: (t: Error) => U): U
+}
 
-    static of<T>(value: T): Success<T> {
-        return new Success(value)
+function Try<T>(f: () => T): Try<T> {
+    try {
+        return Success(f())
+    } catch (e) {
+        return Failure(e)
     }
+}
 
-    get isFailure(): Boolean {
+interface Success<T> extends Try<T> {
+    type: TryType.Success
+}
+
+function Success<T>(value: T): Success<T> {
+    const obj = Object.create(failureImpl);
+    obj.value = value;
+    return obj;
+}
+
+const successImpl: Success<unknown> = {
+    type: TryType.Success,
+    isFailure(): Boolean {
         return false
-    }
-
-    get isSuccess(): Boolean {
+    },
+    isSuccess(): Boolean {
         return true
-    }
-
-    getOrElse<U>(defaultValue: U): T | U {
+    },
+    getOrElse<T, U>(defaultValue: U): T | U {
         return this.value
-    }
-
-    orElse<U>(other: Try<U>): Try<T | U> {
+    },
+    orElse<T, U>(other: Try<U>): Try<T | U> {
         return this
-    }
-
-    get get(): T {
+    },
+    get<T>(): T {
         return this.value
-    }
-
-    foreach<U>(f: (x: T) => U): void {
+    },
+    foreach<T, U>(f: (x: T) => U): void {
         f(this.value)
-    }
-
-    flatMap<U>(f: (x: T) => Try<U>): Try<U> {
+    },
+    flatMap<T, U>(f: (x: T) => Try<U>): Try<U> {
         try {
             return f(this.value)
         } catch(e) {
-            return Failure.of(e)
+            return Failure(e)
         }
-    }
-
-    map<U>(f: (x: T) => U): Try<U> {
+    },
+    map<T, U>(f: (x: T) => U): Try<U> {
         return Try.apply(() => f(this.value))
-    }
-
-    filter(p: (x: T) => Boolean): Try<T> {
+    },
+    filter<T>(p: (x: T) => Boolean): Try<T> {
         return p(this.value)
             ? this
-            : Failure.of(new Error(`Predicate does not hold for ${this.value}`))
-    }
-
-    flatten<U>(): Try<T | U> {
+            : Failure(new Error(`Predicate does not hold for ${this.value}`))
+    },
+    flatten<T, U>(): Try<T | U> {
         return this.value instanceof Try
             ? this.value
             : this
-    }
-
-    transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
+    },
+    transform<T, U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
         return s(this.value)
-    }
-    
-    fold<U>(s: (x: T) => U, f: (t: Error) => U): U {
+    },
+    fold<T, U>(s: (x: T) => U, f: (t: Error) => U): U {
         return s(this.value)
     }
 }
 
-export class Failure<T> extends Try<T> {
-    constructor(private exception: Error) {
-        super()
-    }
+Object.setPrototypeOf(successImpl, Success.prototype);
 
-    static of<T>(exception: Error): Failure<T> {
-        return new Failure(exception)
-    }
+interface Failure<T> extends Try<T> {
+    type: TryType.Failure
+}
 
-    get isFailure(): Boolean {
+function Failure<T extends Error>(error: T): Failure<T> {
+    const obj = Object.create(failureImpl);
+    obj.error = error;
+    return obj;
+}
+
+const failureImpl: Failure<unknown> = {
+    type: TryType.Failure,
+    isFailure(): Boolean {
         return true
-    }
-
-    get isSuccess(): Boolean {
+    },
+    isSuccess(): Boolean {
         return false
-    }
-
-    getOrElse<U>(defaultValue: U): T | U {
+    },
+    getOrElse<T, U>(defaultValue: U): T | U {
         return defaultValue
-    }
-
-    orElse<U>(other: Try<U>): Try<T | U> {
+    },
+    orElse<T, U>(other: Try<U>): Try<T | U> {
         return other
-    }
-
-    get get(): T {
-        throw this.exception
-    }
-
-    foreach<U>(f: (x: T) => U): void {
+    },
+    get<T>(): never {
+        throw this.error
+    },
+    foreach<T, U>(f: (x: T) => U): void {
         // empty side effect
-    }
-
-    flatMap<U>(f: (x: T) => Try<U>): Try<U> {
-        return this.toInstanceOf<U>()
-    }
-
-    map<U>(f: (x: T) => U): Try<U> {
-        return this.toInstanceOf<U>()
-    }
-
-    filter(p: (x: T) => Boolean): Try<T> {
+    },
+    flatMap<T, U>(f: (x: T) => Try<U>): Try<U> {
         return this
-    }
-
-    flatten<U>(): Try<T | U> {
-        return this.toInstanceOf<U>()
-    }
-
-    transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
-        return f(this.exception)
-    }
-    
-    fold<U>(s: (x: T) => U, f: (t: Error) => U): U {
-        return f(this.exception)
-    }
-
-    private toInstanceOf<U>(): Try<U> {
-        return Failure.of(this.exception)
+    },
+    map<T, U>(f: (x: T) => U): Try<U> {
+        return this
+    },
+    filter<T>(p: (x: T) => Boolean): Try<T> {
+        return this
+    },
+    flatten<T, U>(): Try<T | U> {
+        return this
+    },
+    transform<T, U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
+        return f(this.error)
+    },
+    fold<T, U>(s: (x: T) => U, f: (t: Error) => U): U {
+        return f(this.error)
     }
 }
+
+Object.setPrototypeOf(failureImpl, Failure.prototype)
+
+export { Try, Success, Failure }
