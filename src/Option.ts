@@ -21,6 +21,7 @@ interface Option<T> {
   orElse<U>(defaultValue: Option<U>): Option<T | U>;
   zip<U>(that: Option<U>): Option<[T, U]> | None;
   unzip<U>(): [Option<T>, Option<U>];
+  toArray<T>(): Array<T>;
 }
 
 function Option<T>(value: T): Option<T> {
@@ -39,24 +40,23 @@ Option.isSome = <T>(obj: unknown): obj is Some<T> => {
   return type !== undefined && type == OptionType.Some;
 }
 
-Option.isOption = <T>(obj: unknown): obj is Option<T> => Option.isSome(obj) || Option.isNone(obj);
+Option.isOption = <T>(obj: unknown): obj is Option<T> => {
+  return Option.isSome(obj) || Option.isNone(obj);
+}
 
-Option.sequence = <T>(...arr: Option<T>[]): Option<T[]> =>
-  arr.some(x => x.isEmpty)
+Option.sequence = <T>(...arr: Option<T>[]): Option<T[]> => {
+  return arr.some(x => x.isEmpty)
     ? None()
-    : Some(arr.map(x => x.get()))
+    : Some(arr.map(x => x.get()));
+}
 
 interface Some<T> extends Option<T> {
   type: OptionType.Some;
   isEmpty: false;
   isDefined: true;
   get(): T;
-}
-
-function Some<T>(value: T): Some<T> {
-  const obj = Object.create(someImpl);
-  obj.value = value;
-  return obj;
+  getOrElse<U>(defaultValue: U): T;
+  orElse<U>(defaultValue: Option<U>): Option<T>;
 }
 
 const someImpl: Some<unknown> = {
@@ -114,8 +114,17 @@ const someImpl: Some<unknown> = {
     return inner instanceof Array && inner.length === 2
       ? [Some(inner[0]), Some(inner[1])]
       : [None(), None()];
+  },
+  toArray<T>(): Array<T> {
+    return [this.value];
   }
 };
+
+function Some<T>(value: T): Some<T> {
+  const obj = Object.create(someImpl);
+  obj.value = value;
+  return obj;
+}
 
 Object.setPrototypeOf(someImpl, Some.prototype);
 
@@ -125,10 +134,7 @@ interface None extends Option<never> {
   isDefined: false;
   get(): never;
   getOrElse<U>(defaultValue: U): U;
-}
-
-function None(): None {
-  return Object.create(noneImpl)
+  orElse<U>(defaultValue: Option<U>): Option<U>;
 }
 
 const noneImpl: None = {
@@ -136,7 +142,7 @@ const noneImpl: None = {
   isDefined: false,
   isEmpty: true,
   get() {
-    throw new Error(""); // TODO: message
+    throw new EvalError("None.get")
   },
   getOrElse<U>(defaultValue: U) {
     return defaultValue;
@@ -176,8 +182,17 @@ const noneImpl: None = {
   },
   unzip<U>() {
     return [None(), None()];
+  },
+  toArray<T>(): Array<T> {
+    return [];
   }
 }
+
+function None(): None {
+  return noneInstance;
+}
+
+const noneInstance: None = Object.create(noneImpl);
 
 Object.setPrototypeOf(noneImpl, None.prototype);
 

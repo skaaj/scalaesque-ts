@@ -20,7 +20,7 @@
     "typescript": "^3.8.2"
   },
   "scripts": {
-    "start": "node out/app.js",
+    "start": "node out/_Main.js",
     "prestart": "npm run build",
     "build": "tsc",
     "test": "jest"

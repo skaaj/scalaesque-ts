@@ -12,22 +12,26 @@ const s1 = Some(100);
 const t1 = Try(() => { throw new Error("ok"); });
 
 let mapresult1: Option<number> = Some(0);
+let arr: Array<number> = Array(0);
 let mapresult2: Try<number> = Success(12);
 
-console.log(s1 instanceof Some);
 
 suite
     .add('Some Creation', function () {
-        mapresult2 = Try(() => 42);
+        mapresult1 = Some(42);
+    })
+    .add('Some Creation', function () {
     })
     .add('Some Mapping', function () {
         mapresult2 = t1.map(plusOne).map(minusOne).map(plusOne);
+    })
+    .add('Some Mapping', function () {
     })
     .on('cycle', function (event) {
         console.log(String(event.target));
     })
     .on('complete', function () {
         console.log('Fastest is ' + this.filter('fastest').map('name'));
-        console.log(mapresult2);
+        // console.log(mapresult2);
     })
     .run({ 'async': true });
