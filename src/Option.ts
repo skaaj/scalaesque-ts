@@ -87,7 +87,7 @@ const someImpl: Some<unknown> = {
     }
   },
   filter<T>(pred: (x: T) => Boolean) {
-    return pred(this.value) ? Some(this.value) : None();
+    return pred(this.value) ? this : None();
   },
   contains<T, U extends T>(elem: U) {
     return this.value === elem;
