@@ -18,7 +18,7 @@ interface Option<T> {
   exists(pred: (x: T) => Boolean): Boolean;
   forall(pred: (x: T) => Boolean): Boolean;
   foreach<U>(f: (x: T) => U): void;
-  orElse<U>(defaultValue: Option<U>): Option<T | U>;
+  orElse<U>(defaultValue: Option<U>): Option<T> | Option<U>;
   zip<U>(that: Option<U>): Option<[T, U]> | None;
   unzip<U>(): [Option<T>, Option<U>];
   toArray<T>(): Array<T>;
@@ -56,7 +56,19 @@ interface Some<T> extends Option<T> {
   isDefined: true;
   get(): T;
   getOrElse<U>(defaultValue: U): T;
-  orElse<U>(defaultValue: Option<U>): Option<T>;
+  map<U>(f: (x: T) => U): Some<U>;
+  fold<U>(f: (x: T) => U, defaultValue: U): U;
+  flatMap<U>(f: (x: T) => Option<U>): Option<U>;
+  flatten(): Option<unknown> | never;
+  filter(pred: (x: T) => Boolean): Option<T>;
+  contains<U extends T>(elem: U): Boolean;
+  exists(pred: (x: T) => Boolean): Boolean;
+  forall(pred: (x: T) => Boolean): Boolean;
+  foreach<U>(f: (x: T) => U): void;
+  orElse<U>(defaultValue: Option<U>): Some<T>;
+  zip<U>(that: Option<U>): Option<[T, U]> | None;
+  unzip<U>(): [Option<T>, Option<U>];
+  toArray<T>(): Array<T>;
 }
 
 const someImpl: Some<unknown> = {
@@ -72,13 +84,13 @@ const someImpl: Some<unknown> = {
   map<T, U>(f: (x: T) => U) {
     return Some(f(this.value));
   },
-  fold<T, U>(f: (x: T) => U, defaultValue: U) {
+  fold<T, U>(f: (x: T) => U) {
     return f(this.value);
   },
   flatMap<T, U>(f: (x: T) => Option<U>) {
     return f(this.value);
   },
-  flatten<U>() {
+  flatten() {
     const inner = this.value;
     if (Option.isOption(inner)) {
       return inner;
@@ -109,7 +121,7 @@ const someImpl: Some<unknown> = {
       ? Some([this.value, that.get()] as [T, U])
       : None();
   },
-  unzip<U>() {
+  unzip() {
     const inner = this.value;
     return inner instanceof Array && inner.length === 2
       ? [Some(inner[0]), Some(inner[1])]
@@ -134,7 +146,19 @@ interface None extends Option<never> {
   isDefined: false;
   get(): never;
   getOrElse<U>(defaultValue: U): U;
+  map<U>(f: (x: never) => U): None;
+  fold<U>(f: (x: never) => U, defaultValue: U): U;
+  flatMap<U>(f: (x: never) => Option<U>): None;
+  flatten(): None;
+  filter(pred: (x: never) => Boolean): None;
+  contains<U extends never>(elem: U): false;
+  exists(pred: (x: never) => Boolean): false;
+  forall(pred: (x: never) => Boolean): true;
+  foreach<U>(f: (x: never) => U): void;
   orElse<U>(defaultValue: Option<U>): Option<U>;
+  zip<U>(that: Option<U>): None;
+  unzip(): [None, None];
+  toArray(): Array<never>;
 }
 
 const noneImpl: None = {
@@ -156,7 +180,7 @@ const noneImpl: None = {
   flatMap<U>(f: (x: never) => Option<U>) {
     return None();
   },
-  flatten<U>() {
+  flatten() {
     return None();
   },
   filter(pred: (x: never) => Boolean) {
@@ -180,7 +204,7 @@ const noneImpl: None = {
   zip<U>(that: Option<U>) {
     return None();
   },
-  unzip<U>() {
+  unzip() {
     return [None(), None()];
   },
   toArray<T>(): Array<T> {

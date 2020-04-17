@@ -12,8 +12,8 @@ describe("Seq test suite", () => {
   });
   
   test("seq.headOption should return an Option", () => {
-    expect(Seq.of(1, 2, 3).headOption).toStrictEqual(Some.of(1));
-    expect(Seq.empty().headOption).toStrictEqual(None.unit());
+    expect(Seq.of(1, 2, 3).headOption).toStrictEqual(Some(1));
+    expect(Seq.empty().headOption).toStrictEqual(None());
   });
   
   test("seq should be decomposable through spread syntax", () => {

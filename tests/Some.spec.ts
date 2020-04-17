@@ -45,8 +45,8 @@ describe("Some test suite", () => {
     });
 
     test("some.forall(p) should indicate if inner value satisfies predicate", () => {
-        expect(Some(42).exists(x => x > 10)).toBe(true);
-        expect(Some(42).exists(x => x < 10)).toBe(false);
+        expect(Some(42).forall(x => x > 10)).toBe(true);
+        expect(Some(42).forall(x => x < 10)).toBe(false);
     });
 
     test("some.foreach(f) should execute side effecting or empty function f", () => {
@@ -58,6 +58,7 @@ describe("Some test suite", () => {
 
     test("some.orElse(_) should output same instance", () => {
         const some = Some(42);
+        expect(some.orElse(None())).toBe(some);
         expect(some.orElse(Some(0))).toBe(some);
     });
 
@@ -67,8 +68,10 @@ describe("Some test suite", () => {
     });
 
     test("some.unzip() should output pair of somes if input has exactly two values, nones otherwise", () => {
-        expect(Some(42).zip(Some(10))).toEqual(Some([42, 10]));
-        expect(Some(42).zip(None())).toEqual(None());
+        expect(Some([42, 10]).unzip()).toEqual([Some(42), Some(10)]);
+        expect(Some([]).unzip()).toEqual([None(), None()]);
+        expect(Some([42]).unzip()).toEqual([None(), None()]);
+        expect(Some([42, 10, 314]).unzip()).toEqual([None(), None()]);
     });
 
     test("some.toArray() should output a 1-length array filled with the inner value", () => {
