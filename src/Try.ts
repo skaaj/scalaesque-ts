@@ -1,10 +1,10 @@
-enum TryType {
+enum TryKind {
     Success = "__success",
     Failure = "__failure"
 }
 
 interface Try<T> {
-    type: TryType,
+    kind: TryKind,
     isFailure(): Boolean,
     isSuccess(): Boolean,
     getOrElse<U>(defaultValue: U): T | U,
@@ -14,7 +14,7 @@ interface Try<T> {
     flatMap<U>(f: (x: T) => Try<U>): Try<U>,
     map<U>(f: (x: T) => U): Try<U>,
     filter(p: (x: T) => Boolean): Try<T>,
-    flatten<U>(): Try<T | U>,
+    flatten(): Try<unknown>,
     transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>,
     fold<U>(s: (x: T) => U, f: (t: Error) => U): U
 }
@@ -27,18 +27,32 @@ function Try<T>(f: () => T): Try<T> {
     }
 }
 
+Try.isFailure = <T>(obj: unknown): obj is Failure<T> => {
+    const type = (obj as Failure<T>).kind;
+    return type !== undefined && type == TryKind.Failure;
+}
+
+Try.isSuccess = <T>(obj: unknown): obj is Success<T> => {
+    const type = (obj as Success<T>).kind;
+    return type !== undefined && type == TryKind.Success;
+}
+
+Try.isTry = <T>(obj: unknown): obj is Try<T> => {
+    return Try.isSuccess(obj) || Try.isFailure(obj);
+}
+
 interface Success<T> extends Try<T> {
-    type: TryType.Success
+    kind: TryKind.Success
 }
 
 function Success<T>(value: T): Success<T> {
-    const obj = Object.create(failureImpl);
+    const obj = Object.create(successImpl);
     obj.value = value;
     return obj;
 }
 
 const successImpl: Success<unknown> = {
-    type: TryType.Success,
+    kind: TryKind.Success,
     isFailure(): Boolean {
         return false
     },
@@ -65,20 +79,31 @@ const successImpl: Success<unknown> = {
         }
     },
     map<T, U>(f: (x: T) => U): Try<U> {
-        return Try.apply(() => f(this.value))
+        return Try(() => f(this.value))
     },
     filter<T>(p: (x: T) => Boolean): Try<T> {
-        return p(this.value)
-            ? this
-            : Failure(new Error(`Predicate does not hold for ${this.value}`))
+        try {
+            return p(this.value)
+                ? this
+                : Failure(new Error(`Predicate does not hold for ${this.value}`))
+        } catch(e) {
+            return Failure(e)
+        }
     },
-    flatten<T, U>(): Try<T | U> {
-        return this.value instanceof Try
-            ? this.value
-            : this
+    flatten(): Try<unknown> {
+        const inner = this.value;
+        if(Try.isTry(inner)) {
+            return inner;
+        } else {
+            return Failure(new Error("Could not flatten already flat Try."))
+        }
     },
     transform<T, U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
-        return s(this.value)
+        try {
+            return s(this.value);
+        } catch(e) {
+            return Failure(e);
+        }
     },
     fold<T, U>(s: (x: T) => U, f: (t: Error) => U): U {
         return s(this.value)
@@ -88,7 +113,7 @@ const successImpl: Success<unknown> = {
 Object.setPrototypeOf(successImpl, Success.prototype);
 
 interface Failure<T> extends Try<T> {
-    type: TryType.Failure
+    kind: TryKind.Failure
 }
 
 function Failure<T extends Error>(error: T): Failure<T> {
@@ -98,7 +123,7 @@ function Failure<T extends Error>(error: T): Failure<T> {
 }
 
 const failureImpl: Failure<unknown> = {
-    type: TryType.Failure,
+    kind: TryKind.Failure,
     isFailure(): Boolean {
         return true
     },
@@ -115,7 +140,7 @@ const failureImpl: Failure<unknown> = {
         throw this.error
     },
     foreach<T, U>(f: (x: T) => U): void {
-        // empty side effect
+        // does nothing
     },
     flatMap<T, U>(f: (x: T) => Try<U>): Try<U> {
         return this
@@ -126,11 +151,15 @@ const failureImpl: Failure<unknown> = {
     filter<T>(p: (x: T) => Boolean): Try<T> {
         return this
     },
-    flatten<T, U>(): Try<T | U> {
+    flatten(): Try<unknown> {
         return this
     },
     transform<T, U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U> {
-        return f(this.error)
+        try {
+            return f(this.error);
+        } catch(e) {
+            return Failure(e);
+        }
     },
     fold<T, U>(s: (x: T) => U, f: (t: Error) => U): U {
         return f(this.error)

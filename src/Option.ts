@@ -1,10 +1,10 @@
-enum OptionType {
+enum OptionKind {
   Some = "__some",
   None = "__none"
 }
 
 interface Option<T> {
-  type: OptionType;
+  kind: OptionKind;
   isEmpty: boolean;
   isDefined: boolean;
   get(): T | never;
@@ -31,13 +31,13 @@ function Option<T>(value: T): Option<T> {
 }
 
 Option.isNone = (obj: unknown): obj is None => {
-  const type = (obj as None).type;
-  return type !== undefined && type == OptionType.None;
+  const type = (obj as None).kind;
+  return type !== undefined && type == OptionKind.None;
 }
 
 Option.isSome = <T>(obj: unknown): obj is Some<T> => {
-  const type = (obj as Some<T>).type;
-  return type !== undefined && type == OptionType.Some;
+  const type = (obj as Some<T>).kind;
+  return type !== undefined && type == OptionKind.Some;
 }
 
 Option.isOption = <T>(obj: unknown): obj is Option<T> => {
@@ -51,7 +51,7 @@ Option.sequence = <T>(...arr: Option<T>[]): Option<T[]> => {
 }
 
 interface Some<T> extends Option<T> {
-  type: OptionType.Some;
+  kind: OptionKind.Some;
   isEmpty: false;
   isDefined: true;
   get(): T;
@@ -72,7 +72,7 @@ interface Some<T> extends Option<T> {
 }
 
 const someImpl: Some<unknown> = {
-  type: OptionType.Some,
+  kind: OptionKind.Some,
   isDefined: true,
   isEmpty: false,
   get() {
@@ -141,7 +141,7 @@ function Some<T>(value: T): Some<T> {
 Object.setPrototypeOf(someImpl, Some.prototype);
 
 interface None extends Option<never> {
-  type: OptionType.None;
+  kind: OptionKind.None;
   isEmpty: true;
   isDefined: false;
   get(): never;
@@ -162,7 +162,7 @@ interface None extends Option<never> {
 }
 
 const noneImpl: None = {
-  type: OptionType.None,
+  kind: OptionKind.None,
   isDefined: false,
   isEmpty: true,
   get() {
