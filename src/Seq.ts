@@ -1,132 +1,128 @@
 import { Option, Some, None } from './Option'
 
-export class Seq<T> implements Iterable<T> {
-    private constructor(private iterableProvider: () => Iterable<T>) {}
-    
-    [Symbol.iterator](): Iterator<T, T> {
+interface Seq<T> extends Iterable<T> {
+    iterable(): Iterable<T>,
+    iterator(): Iterator<T, T>,
+    head(): T,
+    headOption(): Option<T>,
+    tail(): Seq<T>,
+    map<U>(f: (x: T) => U): Seq<U>,
+    foreach<U>(f: (x: T) => U): void,
+    flatMap<U>(f: (x: T) => Seq<U>): Seq<U>,
+    filter(p: (x: T) => boolean): Seq<T>,
+    concat(other: Iterable<T>): Seq<T>,
+    append(x: T): Seq<T>,
+    prepend(x: T): Seq<T>,
+    take(n: number): Seq<T>,
+    drop(n: number): Seq<T>,
+    dropWhile(p: (x: T) => boolean): Seq<T>,
+    zip<U>(other: Iterable<U>): Seq<[T, U]>,
+    contains(value: T): boolean,
+    exists(p: (x: T) => boolean): boolean,
+    forall(p: (x: T) => boolean): boolean,
+    count(p: (x: T) => boolean): number,
+    toArray(): Array<T>
+}
+
+const seqImpl: Seq<unknown> = {
+    [Symbol.iterator]<T>(): Iterator<T, T> {
         return this.iterableProvider()[Symbol.iterator]()
-    }
+    },
 
-    private get iterable(): Iterable<T> {
+    iterable<T>(): Iterable<T> {
         return this.iterableProvider()
-    }
+    },
 
-    private get iterator(): Iterator<T, T> {
+    iterator<T>(): Iterator<T, T> {
         return this[Symbol.iterator]()
-    }
+    },
 
-    get head(): T {
-        const result = this.iterator.next()
-        if(result.done) {
+    head<T>(): T {
+        const result = this.iterator().next()
+        if (result.done) {
             throw new Error("head of empty sequence")
         } else {
             return result.value
         }
-    }
-
-    get headOption(): Option<T> {
-        const result = this.iterator.next()
+    },
+    
+    headOption<T>(): Option<T> {
+        const result = this.iterator().next()
         return result.done ? None() : Some(result.value)
-    }
-
-    get tail(): Seq<T> {
+    },
+    
+    tail<T>(): Seq<T> {
         return this.drop(1)
-    }
-
-    static of<T>(...arr: Array<T>){
-        return new Seq<T>(() => arr)
-    }
-
-    static from<T>(iterable: Iterable<T>): Seq<T> {
-        return new Seq<T>(() => iterable)
-    }
-
-    static create<T>(generator: () => Generator<T>): Seq<T> {
-        return new Seq<T>(generator)
-    }
+    },
     
-    static empty(): Seq<null> {
-        return new Seq<null>(() => [])
-    }
-    
-    static range(start: number, end: number) {
-        return new Seq<number>(function* () {
-            let i = start
-            while(i < end) {
-                yield i
-                i += 1
-            }
-        })
-    }
-
-    map<U>(f: (x: T) => U): Seq<U> {
-        const iterable = this.iterable
-        return new Seq<U>(function* () {
-            for(const x of iterable) {
+    map<T, U>(f: (x: T) => U): Seq<U> {
+        const iterable = this.iterable()
+        return Seq.apply<U>(function* () {
+            for (const x of iterable) {
                 yield f(x)
             }
         })
-    }
-
-    foreach<U>(f: (x: T) => U): void {
-        for(const x of this.iterable) {
+    },
+    
+    foreach<T, U>(f: (x: T) => U): void {
+        for (const x of this.iterable()) {
             f(x)
         }
-    }
-
-    flatMap<U>(f: (x: T) => Seq<U>): Seq<U> {
-        const iterable = this.iterable
-        return new Seq<U>(function* () {
-            for(const x of iterable) {
+    },
+    
+    flatMap<T, U>(f: (x: T) => Seq<U>): Seq<U> {
+        const iterable = this.iterable()
+        return Seq.apply(function* () {
+            for (const x of iterable) {
                 yield* f(x)
             }
         })
-    }
-
-    filter(p: (x: T) => boolean): Seq<T> {
-        const iterable = this.iterable
-        return new Seq<T>(function* () {
-            for(const x of iterable) {
-                if(p(x)) {
+    },
+    
+    filter<T>(p: (x: T) => boolean): Seq<T> {
+        const iterable = this.iterable()
+        return Seq.apply(function* () {
+            for (const x of iterable) {
+                if (p(x)) {
                     yield x
                 }
             }
         })
-    }
-
-    concat(other: Iterable<T>): Seq<T> {
-        const iterable = this.iterable;
-        return new Seq<T>(function* () {
+    },
+    
+    concat<T>(other: Iterable<T>): Seq<T> {
+        const iterable = this.iterable();
+        return Seq.apply(function* () {
             yield* iterable;
             yield* other;
         });
-    }
-
-    append(x: T): Seq<T> {
-        const iterable = this.iterable
-        return new Seq<T>(function* () {
+    },
+    
+    append<T>(x: T): Seq<T> {
+        const iterable = this.iterable()
+        return Seq.apply(function* () {
             yield* iterable;
             yield x;
         });
-    }
-
-    prepend(x: T): Seq<T> {
-        const iterable = this.iterable
-        return new Seq<T>(function* () {
+    },
+    
+    prepend<T>(x: T): Seq<T> {
+        const iterable = this.iterable()
+        return Seq.apply(function* () {
             yield x;
             yield* iterable;
         });
-    }
-
-    take(n: number): Seq<T> {
-        if(n <= 0) {
+    },
+    
+    take<T>(n: number): Seq<T> {
+        if (n <= 0) {
             return Seq.empty()
         } else {
-            const iterator = this.iterator
-            return new Seq<T>(function* () {
+            const iterator = this.iterator()
+            return Seq.apply(function* () {
                 let i = 0
                 let current = iterator.next()
-                while(!current.done) {
+                while (!current.done) {
                     yield current.value
 
                     i += 1
@@ -136,91 +132,118 @@ export class Seq<T> implements Iterable<T> {
                 }
             })
         }
-    }
-
-    drop(n: number): Seq<T> {
-        if(n <= 0) {
-            return new Seq(this.iterableProvider)
+    },
+    
+    drop<T>(n: number): Seq<T> {
+        if (n <= 0) {
+            return Seq.apply(this.iterableProvider)
         } else {
-            const iterable = this.iterable
-            return new Seq(function* () {
+            const iterable = this.iterable()
+            return Seq.apply(function* () {
                 let count = 0
-                for(const x of iterable) {
+                for (const x of iterable) {
                     count += 1
-                    if(count > n) {
+                    if (count > n) {
                         yield x
                     }
                 }
             })
         }
-    }
-
-    dropWhile(p: (x: T) => boolean): Seq<T> {
-        const iterator = this.iterator;
-        return Seq.create(function* () {
+    },
+    
+    dropWhile<T>(p: (x: T) => boolean): Seq<T> {
+        const iterator = this.iterator();
+        return Seq.apply(function* () {
             let current = iterator.next();
             let started = false;
-            while(!current.done) {
-                if(!started) {
+            while (!current.done) {
+                if (!started) {
                     started = !p(current.value);
                 }
-                if(started) {
+                if (started) {
                     yield current.value;
                 }
                 current = iterator.next();
             }
         });
-    }
- 
-    zip<U>(other: Iterable<U>): Seq<[T, U]> {
-        const iteratorLeft = this.iterator
+    },
+    
+    zip<T, U>(other: Iterable<U>): Seq<[T, U]> {
+        const iteratorLeft = this.iterator()
         const iteratorRight = other[Symbol.iterator]()
 
         let left = iteratorLeft.next()
         let right = iteratorRight.next()
 
-        return new Seq<[T, U]>(function* () {
-            while(!left.done && !right.done) {
+        return Seq.apply<[T, U]>(function* () {
+            while (!left.done && !right.done) {
                 yield [left.value, right.value]
                 left = iteratorLeft.next()
                 right = iteratorRight.next()
             }
         })
-    }
-
-    contains(value: T): boolean {
-        for(const x of this.iterable) {
-            if(x === value) {
+    },
+    
+    contains<T>(value: T): boolean {
+        for (const x of this.iterable) {
+            if (x === value) {
                 return true;
             }
         }
         return false;
-    }
-
-    exists(p: (x: T) => boolean): boolean {
-        for(const x of this.iterable) {
-            if(p(x)) {
+    },
+    
+    exists<T>(p: (x: T) => boolean): boolean {
+        for (const x of this.iterable) {
+            if (p(x)) {
                 return true
             }
         }
         return false
-    }
-
-    forall(p: (x: T) => boolean): boolean {
+    },
+    
+    forall<T>(p: (x: T) => boolean): boolean {
         return !this.exists(x => !p(x))
-    }
-
-    count(p: (x: T) => boolean): number {
+    },
+    
+    count<T>(p: (x: T) => boolean): number {
         let count = 0
-        for(const x of this) {
-            if(p(x)) {
+        for (const x of this) {
+            if (p(x)) {
                 count += 1
             }
         }
         return count
-    }
-
-    toArray(): Array<T> {
-        return Array.from(this.iterable)
+    },
+    
+    toArray<T>(): Array<T> {
+        return Array.from(this.iterable())
     }
 }
+
+function Seq<T>(...arr: Array<T>): Seq<T> {
+    return Seq.apply(() => arr);
+}
+
+Seq.apply = <T>(provider: () => Iterable<T>): Seq<T> => {
+    const obj = Object.create(seqImpl);
+    obj.iterableProvider = provider;
+    return obj;
+}
+
+Seq.empty = <T>(): Seq<T> => Seq.apply<T>(() => [])
+Seq.create = <T>(provider: () => Iterable<T>): Seq<T> => Seq.apply(provider)
+Seq.from = <T>(iterable: Iterable<T>): Seq<T> => Seq.apply(() => iterable)
+Seq.range = (start: number, end: number): Seq<number> => {
+    return Seq.apply(function* () {
+        let i = start
+        while(i < end) {
+            yield i
+            i += 1
+        }
+    })
+}
+
+Object.setPrototypeOf(seqImpl, Seq.prototype);
+
+export { Seq }
