@@ -1,8 +1,6 @@
 import { Option, Some, None } from './Option'
 
 interface Seq<T> extends Iterable<T> {
-    iterable(): Iterable<T>,
-    iterator(): Iterator<T, T>,
     head(): T,
     headOption(): Option<T>,
     tail(): Seq<T>,
@@ -24,10 +22,12 @@ interface Seq<T> extends Iterable<T> {
     toArray(): Array<T>
 }
 
-const seqImpl: Seq<unknown> = {
+const seqImpl = {
     [Symbol.iterator]<T>(): Iterator<T, T> {
         return this.iterableProvider()[Symbol.iterator]()
     },
+
+    foo: 12,
 
     iterable<T>(): Iterable<T> {
         return this.iterableProvider()
@@ -57,7 +57,7 @@ const seqImpl: Seq<unknown> = {
     
     map<T, U>(f: (x: T) => U): Seq<U> {
         const iterable = this.iterable()
-        return Seq.apply<U>(function* () {
+        return Seq.create<U>(function* () {
             for (const x of iterable) {
                 yield f(x)
             }
@@ -72,7 +72,7 @@ const seqImpl: Seq<unknown> = {
     
     flatMap<T, U>(f: (x: T) => Seq<U>): Seq<U> {
         const iterable = this.iterable()
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             for (const x of iterable) {
                 yield* f(x)
             }
@@ -81,7 +81,7 @@ const seqImpl: Seq<unknown> = {
     
     filter<T>(p: (x: T) => boolean): Seq<T> {
         const iterable = this.iterable()
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             for (const x of iterable) {
                 if (p(x)) {
                     yield x
@@ -92,7 +92,7 @@ const seqImpl: Seq<unknown> = {
     
     concat<T>(other: Iterable<T>): Seq<T> {
         const iterable = this.iterable();
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             yield* iterable;
             yield* other;
         });
@@ -100,7 +100,7 @@ const seqImpl: Seq<unknown> = {
     
     append<T>(x: T): Seq<T> {
         const iterable = this.iterable()
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             yield* iterable;
             yield x;
         });
@@ -108,7 +108,7 @@ const seqImpl: Seq<unknown> = {
     
     prepend<T>(x: T): Seq<T> {
         const iterable = this.iterable()
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             yield x;
             yield* iterable;
         });
@@ -119,7 +119,7 @@ const seqImpl: Seq<unknown> = {
             return Seq.empty()
         } else {
             const iterator = this.iterator()
-            return Seq.apply(function* () {
+            return Seq.create(function* () {
                 let i = 0
                 let current = iterator.next()
                 while (!current.done) {
@@ -136,10 +136,10 @@ const seqImpl: Seq<unknown> = {
     
     drop<T>(n: number): Seq<T> {
         if (n <= 0) {
-            return Seq.apply(this.iterableProvider)
+            return Seq.create(this.iterableProvider)
         } else {
             const iterable = this.iterable()
-            return Seq.apply(function* () {
+            return Seq.create(function* () {
                 let count = 0
                 for (const x of iterable) {
                     count += 1
@@ -153,7 +153,7 @@ const seqImpl: Seq<unknown> = {
     
     dropWhile<T>(p: (x: T) => boolean): Seq<T> {
         const iterator = this.iterator();
-        return Seq.apply(function* () {
+        return Seq.create(function* () {
             let current = iterator.next();
             let started = false;
             while (!current.done) {
@@ -175,7 +175,7 @@ const seqImpl: Seq<unknown> = {
         let left = iteratorLeft.next()
         let right = iteratorRight.next()
 
-        return Seq.apply<[T, U]>(function* () {
+        return Seq.create<[T, U]>(function* () {
             while (!left.done && !right.done) {
                 yield [left.value, right.value]
                 left = iteratorLeft.next()
@@ -222,20 +222,19 @@ const seqImpl: Seq<unknown> = {
 }
 
 function Seq<T>(...arr: Array<T>): Seq<T> {
-    return Seq.apply(() => arr);
+    return Seq.create(() => arr);
 }
 
-Seq.apply = <T>(provider: () => Iterable<T>): Seq<T> => {
+Seq.create = <T>(provider: () => Iterable<T>): Seq<T> => {
     const obj = Object.create(seqImpl);
     obj.iterableProvider = provider;
     return obj;
 }
 
-Seq.empty = <T>(): Seq<T> => Seq.apply<T>(() => [])
-Seq.create = <T>(provider: () => Iterable<T>): Seq<T> => Seq.apply(provider)
-Seq.from = <T>(iterable: Iterable<T>): Seq<T> => Seq.apply(() => iterable)
+Seq.empty = <T>(): Seq<T> => Seq.create<T>(() => [])
+Seq.from = <T>(iterable: Iterable<T>): Seq<T> => Seq.create(() => iterable)
 Seq.range = (start: number, end: number): Seq<number> => {
-    return Seq.apply(function* () {
+    return Seq.create(function* () {
         let i = start
         while(i < end) {
             yield i
