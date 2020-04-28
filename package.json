@@ -1,6 +1,6 @@
 {
   "name": "scalaesque-ts",
-  "version": "1.0.0",
+  "version": "0.8.0",
   "description": "",
   "main": "index.js",
   "dependencies": {
@@ -20,8 +20,8 @@
     "typescript": "^3.8.2"
   },
   "scripts": {
-    "start": "node out/_Main.js",
-    "prestart": "npm run build",
+    "start": "node build/_Main.js",
+    "prestart": "rm -r build && npm run build",
     "build": "tsc",
     "test": "jest"
   },
@@ -31,7 +31,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/skaaj/scalaesque-ts/issues"
   },

@@ -1,5 +1,6 @@
 # Misc
-/out
+out/
+build/
 .vscode/
 
 # Logs
