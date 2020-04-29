@@ -4,8 +4,7 @@
   "description": "",
   "main": "dist/index.js",
   "dependencies": {
-    "@types/node": "^13.7.4",
-    "benchmark": "^2.1.4"
+    "@types/node": "^13.7.4"
   },
   "devDependencies": {
     "@types/jest": "^25.1.4",
@@ -20,8 +19,8 @@
     "typescript": "^3.8.2"
   },
   "scripts": {
-    "start": "node build/_Main.js",
-    "prestart": "rm -r build && npm run build",
+    "start": "node dist/_Main.js",
+    "prestart": "rm -r dist; npm run build",
     "build": "tsc",
     "test": "jest",
     "prepublishOnly": "tsc"
