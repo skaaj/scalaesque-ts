@@ -29,7 +29,7 @@
     "type": "git",
     "url": "git+https://github.com/skaaj/scalaesque-ts.git"
   },
-  "keywords": [],
+  "keywords": ["scala", "option", "seq", "try"],
   "author": "",
   "license": "MIT",
   "bugs": {
