@@ -2,7 +2,7 @@
   "name": "scalaesque-ts",
   "version": "0.9.0",
   "description": "",
-  "main": "index.js",
+  "main": "dist/index.js",
   "dependencies": {
     "@types/node": "^13.7.4",
     "benchmark": "^2.1.4"
@@ -23,7 +23,8 @@
     "start": "node build/_Main.js",
     "prestart": "rm -r build && npm run build",
     "build": "tsc",
-    "test": "jest"
+    "test": "jest",
+    "prepublishOnly": "tsc"
   },
   "repository": {
     "type": "git",
