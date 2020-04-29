@@ -2,7 +2,7 @@
     "compilerOptions": {
         "target": "es6",
         "lib": ["es6"],
-        "outDir": "./build",
+        "outDir": "./dist",
         "rootDir": "./src",
         "sourceMap": true,
         "module": "CommonJS",
