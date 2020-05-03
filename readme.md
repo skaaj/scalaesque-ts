@@ -1,6 +1,10 @@
 # scalaesque-ts
 Attempt to mimic Scala types in TypesScript.
 
+* [Option](#option)  
+* [Try](#try)  
+* [Seq](#seq)  
+
 ## Option
     kind: OptionKind
     isEmpty: boole
