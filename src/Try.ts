@@ -4,19 +4,19 @@ enum TryKind {
 }
 
 interface Try<T> {
-    kind: TryKind,
-    isFailure(): Boolean,
-    isSuccess(): Boolean,
-    getOrElse<U>(defaultValue: U): T | U,
-    orElse<U>(other: Try<U>): Try<T | U>,
-    get(): T,
-    foreach<U>(f: (x: T) => U): void,
-    flatMap<U>(f: (x: T) => Try<U>): Try<U>,
-    map<U>(f: (x: T) => U): Try<U>,
-    filter(p: (x: T) => Boolean): Try<T>,
-    flatten(): Try<unknown>,
-    transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>,
-    fold<U>(s: (x: T) => U, f: (t: Error) => U): U
+    kind: TryKind;
+    isFailure(): Boolean;
+    isSuccess(): Boolean;
+    getOrElse<U>(defaultValue: U): T | U;
+    orElse<U>(other: Try<U>): Try<T | U>;
+    get(): T;
+    foreach<U>(f: (x: T) => U): void;
+    flatMap<U>(f: (x: T) => Try<U>): Try<U>;
+    map<U>(f: (x: T) => U): Try<U>;
+    filter(p: (x: T) => Boolean): Try<T>;
+    flatten(): Try<unknown>;
+    transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>;
+    fold<U>(s: (x: T) => U, f: (t: Error) => U): U;
 }
 
 function Try<T>(f: () => T): Try<T> {

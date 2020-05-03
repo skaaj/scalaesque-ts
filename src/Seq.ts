@@ -1,25 +1,25 @@
 import { Option, Some, None } from './Option'
 
 interface Seq<T> extends Iterable<T> {
-    head(): T,
-    headOption(): Option<T>,
-    tail(): Seq<T>,
-    map<U>(f: (x: T) => U): Seq<U>,
-    foreach<U>(f: (x: T) => U): void,
-    flatMap<U>(f: (x: T) => Seq<U>): Seq<U>,
-    filter(p: (x: T) => boolean): Seq<T>,
-    concat(other: Iterable<T>): Seq<T>,
-    append(x: T): Seq<T>,
-    prepend(x: T): Seq<T>,
-    take(n: number): Seq<T>,
-    drop(n: number): Seq<T>,
-    dropWhile(p: (x: T) => boolean): Seq<T>,
-    zip<U>(other: Iterable<U>): Seq<[T, U]>,
-    contains(value: T): boolean,
-    exists(p: (x: T) => boolean): boolean,
-    forall(p: (x: T) => boolean): boolean,
-    count(p: (x: T) => boolean): number,
-    toArray(): Array<T>
+    head(): T;
+    headOption(): Option<T>;
+    tail(): Seq<T>;
+    map<U>(f: (x: T) => U): Seq<U>;
+    foreach<U>(f: (x: T) => U): void;
+    flatMap<U>(f: (x: T) => Seq<U>): Seq<U>;
+    filter(p: (x: T) => boolean): Seq<T>;
+    concat(other: Iterable<T>): Seq<T>;
+    append(x: T): Seq<T>;
+    prepend(x: T): Seq<T>;
+    take(n: number): Seq<T>;
+    drop(n: number): Seq<T>;
+    dropWhile(p: (x: T) => boolean): Seq<T>;
+    zip<U>(other: Iterable<U>): Seq<[T, U]>;
+    contains(value: T): boolean;
+    exists(p: (x: T) => boolean): boolean;
+    forall(p: (x: T) => boolean): boolean;
+    count(p: (x: T) => boolean): number;
+    toArray(): Array<T>;
 }
 
 const seqImpl = {
