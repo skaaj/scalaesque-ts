@@ -19,7 +19,7 @@
     "typescript": "^3.8.2"
   },
   "scripts": {
-    "start": "node dist/_Main.js",
+    "start": "node dist/xzone/Main.js",
     "prestart": "rm -r dist; npm run build",
     "build": "tsc",
     "test": "jest",
