@@ -1,4 +1,3 @@
-import { CachingIterator } from "./CachingIterator";
 import { Option, Some, None } from './Option'
 
 interface Seq<T> extends Iterable<T> {
@@ -25,11 +24,17 @@ interface Seq<T> extends Iterable<T> {
 
 const seqImpl = {
     [Symbol.iterator]<T>(): Iterator<T, T> {
-        return this.iterator();
+        return this.iterableProvider()[Symbol.iterator]()
     },
 
+    foo: 12,
+
     iterable<T>(): Iterable<T> {
-        return this;
+        return this.iterableProvider()
+    },
+
+    iterator<T>(): Iterator<T, T> {
+        return this[Symbol.iterator]()
     },
 
     head<T>(): T {
@@ -113,7 +118,7 @@ const seqImpl = {
         if (n <= 0) {
             return Seq.empty()
         } else {
-            const iterator = this.iterator();
+            const iterator = this.iterator()
             return Seq.create(function* () {
                 let i = 0
                 let current = iterator.next()
@@ -131,7 +136,7 @@ const seqImpl = {
     
     drop<T>(n: number): Seq<T> {
         if (n <= 0) {
-            return this
+            return Seq.create(this.iterableProvider)
         } else {
             const iterable = this.iterable()
             return Seq.create(function* () {
@@ -180,7 +185,7 @@ const seqImpl = {
     },
     
     contains<T>(value: T): boolean {
-        for (const x of this.iterable()) {
+        for (const x of this.iterable) {
             if (x === value) {
                 return true;
             }
@@ -189,7 +194,7 @@ const seqImpl = {
     },
     
     exists<T>(p: (x: T) => boolean): boolean {
-        for (const x of this.iterable()) {
+        for (const x of this.iterable) {
             if (p(x)) {
                 return true
             }
@@ -217,23 +222,17 @@ const seqImpl = {
 }
 
 function Seq<T>(...arr: Array<T>): Seq<T> {
-    return Seq.from(arr);
+    return Seq.create(() => arr);
 }
 
-Seq.create = <T>(generator: () => Iterator<T>): Seq<T> => {
+Seq.create = <T>(provider: () => Iterable<T>): Seq<T> => {
     const obj = Object.create(seqImpl);
-    obj.innerIterator = new CachingIterator(generator());
-    obj.iterator = () => obj.innerIterator.reset();
+    obj.iterableProvider = provider;
     return obj;
 }
 
-Seq.from = <T>(iterable: Iterable<T>): Seq<T> => {
-    const obj = Object.create(seqImpl);
-    obj.iterator = () => iterable[Symbol.iterator]();
-    return obj;
-}
-
-Seq.empty = <T>(): Seq<T> => Seq.from<T>([])
+Seq.empty = <T>(): Seq<T> => Seq.create<T>(() => [])
+Seq.from = <T>(iterable: Iterable<T>): Seq<T> => Seq.create(() => iterable)
 Seq.range = (start: number, end: number): Seq<number> => {
     return Seq.create(function* () {
         let i = start
