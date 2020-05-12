@@ -21,5 +21,6 @@ module.exports = {
     '@typescript-eslint/no-explicit-any': 'off',
     '@typescript-eslint/no-unused-vars': 'off',
     '@typescript-eslint/brace-style': ['warn', '1tbs'],
+    '@typescript-eslint/no-use-before-define': 'off'
   },
 };

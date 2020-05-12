@@ -19,8 +19,7 @@ export class CachingIterator<T> implements Iterator<T> {
     next() {
         if (this.isFirstPass && this.current >= this.cache.length) {
             return this.getFromBaseIterator();
-        }
-        else {
+        } else {
             return this.getFromCache();
         }
     }
@@ -31,8 +30,7 @@ export class CachingIterator<T> implements Iterator<T> {
                 value: undefined,
                 done: true
             };
-        }
-        else {
+        } else {
             const index = this.current++;
             return {
                 value: this.cache[index],
@@ -45,8 +43,7 @@ export class CachingIterator<T> implements Iterator<T> {
         const item = this.baseIterator.next();
         if (item.done) {
             this.isFirstPass = false;
-        }
-        else {
+        } else {
             this.cache.push(item.value);
         }
         this.current += 1;

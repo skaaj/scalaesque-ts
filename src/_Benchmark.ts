@@ -6,7 +6,7 @@ const suite = new Benchmark.Suite;
 
 const generator = function* () {
     let i = 0;
-    let max = 10000000;
+    const max = 10000000;
     while(i < max) {
         yield i;
         i++;
@@ -14,11 +14,11 @@ const generator = function* () {
 }
 
 const xs = Seq.create(generator);
-const ys = [...generator()];
+const ys = LegacySeq.create(generator);
 
 const sum = (iterable) => {
     let s = 0;
-    for(let x of iterable) {
+    for(const x of iterable) {
         s += x;
     }
     return s;
@@ -28,14 +28,14 @@ suite
 .add('Array (std)', function() {
     const res = ys
         .map(x => x + 10)
-        .filter(x => x % 2 == 0)
-        .includes(314);
+        .filter(x => x % 2 == 0);
+        sum(res);
 })
 .add('Seq (lazy and cached)', function() {
     const res = xs
         .map(x => x + 1)
-        .filter(x => x % 2 == 0)
-        .contains(314);
+        .filter(x => x % 2 == 0);
+    sum(res);
 })
 .on('cycle', function(event) {
   console.log(String(event.target));

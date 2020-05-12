@@ -13,10 +13,10 @@ interface Option<T> {
   fold<U>(f: (x: T) => U, defaultValue: U): U;
   flatMap<U>(f: (x: T) => Option<U>): Option<U>;
   flatten(): Option<unknown> | never;
-  filter(pred: (x: T) => Boolean): Option<T>;
-  contains<U extends T>(elem: U): Boolean;
-  exists(pred: (x: T) => Boolean): Boolean;
-  forall(pred: (x: T) => Boolean): Boolean;
+  filter(pred: (x: T) => boolean): Option<T>;
+  contains<U extends T>(elem: U): boolean;
+  exists(pred: (x: T) => boolean): boolean;
+  forall(pred: (x: T) => boolean): boolean;
   foreach<U>(f: (x: T) => U): void;
   orElse<U>(defaultValue: Option<U>): Option<T> | Option<U>;
   zip<U>(that: Option<U>): Option<[T, U]> | None;
@@ -60,10 +60,10 @@ interface Some<T> extends Option<T> {
   fold<U>(f: (x: T) => U, defaultValue: U): U;
   flatMap<U>(f: (x: T) => Option<U>): Option<U>;
   flatten(): Option<unknown> | never;
-  filter(pred: (x: T) => Boolean): Option<T>;
-  contains<U extends T>(elem: U): Boolean;
-  exists(pred: (x: T) => Boolean): Boolean;
-  forall(pred: (x: T) => Boolean): Boolean;
+  filter(pred: (x: T) => boolean): Option<T>;
+  contains<U extends T>(elem: U): boolean;
+  exists(pred: (x: T) => boolean): boolean;
+  forall(pred: (x: T) => boolean): boolean;
   foreach<U>(f: (x: T) => U): void;
   orElse<U>(defaultValue: Option<U>): Some<T>;
   zip<U>(that: Option<U>): Option<[T, U]> | None;
@@ -98,16 +98,16 @@ const someImpl: Some<unknown> = {
       throw new Error("Could not flatten already flat Option.");
     }
   },
-  filter<T>(pred: (x: T) => Boolean) {
+  filter<T>(pred: (x: T) => boolean) {
     return pred(this.value) ? this : None();
   },
   contains<T, U extends T>(elem: U) {
     return this.value === elem;
   },
-  exists<T>(pred: (x: T) => Boolean) {
+  exists<T>(pred: (x: T) => boolean) {
     return pred(this.value);
   },
-  forall<T>(pred: (x: T) => Boolean) {
+  forall<T>(pred: (x: T) => boolean) {
     return pred(this.value);
   },
   foreach<T, U>(f: (x: T) => U) {
@@ -150,10 +150,10 @@ interface None extends Option<never> {
   fold<U>(f: (x: never) => U, defaultValue: U): U;
   flatMap<U>(f: (x: never) => Option<U>): None;
   flatten(): None;
-  filter(pred: (x: never) => Boolean): None;
+  filter(pred: (x: never) => boolean): None;
   contains<U extends never>(elem: U): false;
-  exists(pred: (x: never) => Boolean): false;
-  forall(pred: (x: never) => Boolean): true;
+  exists(pred: (x: never) => boolean): false;
+  forall(pred: (x: never) => boolean): true;
   foreach<U>(f: (x: never) => U): void;
   orElse<U>(defaultValue: Option<U>): Option<U>;
   zip<U>(that: Option<U>): None;
@@ -183,16 +183,16 @@ const noneImpl: None = {
   flatten() {
     return None();
   },
-  filter(pred: (x: never) => Boolean) {
+  filter(pred: (x: never) => boolean) {
     return None();
   },
   contains<U extends never>(elem: U) {
     return false;
   },
-  exists(pred: (x: never) => Boolean) {
+  exists(pred: (x: never) => boolean) {
     return false;
   },
-  forall(pred: (x: never) => Boolean) {
+  forall(pred: (x: never) => boolean) {
     return true;
   },
   foreach<U>(f: (x: never) => U) {

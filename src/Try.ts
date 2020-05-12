@@ -5,15 +5,15 @@ enum TryKind {
 
 interface Try<T> {
     kind: TryKind;
-    isFailure(): Boolean;
-    isSuccess(): Boolean;
+    isFailure(): boolean;
+    isSuccess(): boolean;
     getOrElse<U>(defaultValue: U): T | U;
     orElse<U>(other: Try<U>): Try<T | U>;
     get(): T;
     foreach<U>(f: (x: T) => U): void;
     flatMap<U>(f: (x: T) => Try<U>): Try<U>;
     map<U>(f: (x: T) => U): Try<U>;
-    filter(p: (x: T) => Boolean): Try<T>;
+    filter(p: (x: T) => boolean): Try<T>;
     flatten(): Try<unknown>;
     transform<U>(s: (x: T) => Try<U>, f: (t: Error) => Try<U>): Try<U>;
     fold<U>(s: (x: T) => U, f: (t: Error) => U): U;
@@ -53,10 +53,10 @@ function Success<T>(value: T): Success<T> {
 
 const successImpl: Success<unknown> = {
     kind: TryKind.Success,
-    isFailure(): Boolean {
+    isFailure(): boolean {
         return false
     },
-    isSuccess(): Boolean {
+    isSuccess(): boolean {
         return true
     },
     getOrElse<T, U>(defaultValue: U): T | U {
@@ -81,7 +81,7 @@ const successImpl: Success<unknown> = {
     map<T, U>(f: (x: T) => U): Try<U> {
         return Try(() => f(this.value))
     },
-    filter<T>(p: (x: T) => Boolean): Try<T> {
+    filter<T>(p: (x: T) => boolean): Try<T> {
         try {
             return p(this.value)
                 ? this
@@ -124,10 +124,10 @@ function Failure<T extends Error>(error: T): Failure<T> {
 
 const failureImpl: Failure<unknown> = {
     kind: TryKind.Failure,
-    isFailure(): Boolean {
+    isFailure(): boolean {
         return true
     },
-    isSuccess(): Boolean {
+    isSuccess(): boolean {
         return false
     },
     getOrElse<T, U>(defaultValue: U): T | U {
@@ -148,7 +148,7 @@ const failureImpl: Failure<unknown> = {
     map<T, U>(f: (x: T) => U): Try<U> {
         return this
     },
-    filter<T>(p: (x: T) => Boolean): Try<T> {
+    filter<T>(p: (x: T) => boolean): Try<T> {
         return this
     },
     flatten(): Try<unknown> {
